@@ -1,4 +1,4 @@
-# Problema
+# Problema original
 
 ## **Optimización de Ayuda Humanitaria en el Huracán Aurora**
 
@@ -14,12 +14,39 @@ La combinación de estos factores **ralentizó la entrega** de recursos crítico
 
 La **Agencia de Respuesta Internacional (ARI)** y las autoridades locales enfrentan el desafío de optimizar la distribución de ayuda humanitaria tras el **Huracán Aurora**, con el objetivo de **maximizar la entrega eficiente de recursos** y **minimizar tiempos, costos y riesgos operativos** en una situación crítica. Es necesario determinar qué suministros deben enviarse a cada área priorizando la **gravedad del impacto** y la **población afectada**, mientras se consideran las **limitaciones de transporte y almacenamiento** en centros logísticos para evitar escasez en las zonas más críticas o exceso en áreas menos afectadas. La **infraestructura parcialmente colapsada**, con carreteras inundadas o bloqueadas, obliga a encontrar **rutas alternativas** que reduzcan el tiempo y el costo de transporte para garantizar la entrega rápida de recursos esenciales. Además, es vital anticipar **nuevos riesgos** como réplicas sísmicas, inundaciones adicionales o fallos en el transporte y el personal, implementando **planes de contingencia** que minimicen interrupciones en la cadena de suministro.
 
-## Subproblemas
+## Subproblemas seleccionados
 
-- Dada una red de flujo, donde *s* (nodo fuente) representa la cantidad de suministros disponibles en los centros de distribución y *t* (nodo objetivo) representa una zona de desastre. Cada arista en la red, representa la capacidad máxima de recursos que se pueden distribuir en un tiempo razonable (digamos un día) por la arista. Dicha capacidad se ve afectada tambien por la calidad de la carretera en cuestión y qué tanto se afectó por el fenómeno. El objetivo es determinar por cada punto de desastre, cuál sería la mayor cantidad de suministros a enviar en un tiempo razonable desde los centros de distribución.
-- Dado un grafo dirigido y ponderado que representa un mapa con sus respectivas calles, un conjunto *T* que representa los nodos objetivos, tal que cada *t* tiene asignado un entero *t_k*, y un conjunto *S* que representa los centros de distribución, los cuales tienen una cantidad de suministros y un conjunto de vehículos para transportarlos. Se desea encontrar una solución óptima, tal que maximice la equidad en la distribución de los suministros, disminuyendo el costo de transportación. Se asume que el peso de una arista *(v, u)* representa el gasto de combustible de un vehículo que va del nodo *v* al nodo *u*.
+- Luego del huracan Aurora, algunas calles y caminos fueron dañados, impidiendo el paso de las ayudas humanitarias a las zonas afectadas. Se tiene un presupuesto *B*, una cantidad de suministros *S* y un grafo ponderado de la zona afectada.
+Se tiene un conjunto *D*, tal que cada *D_i* representa una zona de desastre y una lista *P* tal que *P_i* es la prioridad de la zona *i*.
+Se desea saber si existe un conjunto de caminos que se pueden arreglar con el presupuesto *B* tal que el suministro *S* llegue a la mayor cantidad de zonas afectadas posibles, priorizando las zonas de mayor demanda.
 
-## Importancia práctica
+- La agencia humanitaria tiene varias sucursales distribuidas en el territorio, representadas por el conjunto S. Cada sucursal i posee una flota heterogénea de vehículos F_i, donde cada vehículo j tiene capacidad de carga c_i_j y consumo d_i_j. Se dispone de un grafo ponderado que modela el mapa de la region afectada, donde algunos nodos pueden ser zonas afectadas o sucursales y dada una arista e, w(e) representa la distancia del viaje entre los nodos extremos.
+Cada zona afectada D_k, tiene una demanda especifica de suministros que debe ser satisfecha exactamente una vez por un unico vehiculo. Un vehiculo asignado debe partir de su sucursal de origen y visitar un conjunto de zonas {D_k_1, D_k_2, ...} y regresar a su sucursal. La suma de las demandas q_k en las zonas visitadas por un vehiculo no puede exceder la capacidad c_i_j. De ser necesario no todos los vehiculos deben utilizarse, ya que esto podria minimizar costos. Se desea minimizar el costo de combustible de todos los vehiculos, donde el costo esta dado como: d_i_j * distancia recorrida por F_i_j (vehiculo j de la flota i).
 
-Las redes de distribución de suministros son fundamentales en la logística de emergencias, permitiendo la entrega eficiente de recursos críticos en situaciones de desastre. 
-Usualmente este trabajo es realizado por organizaciones humanitarias o autoridades locales, por lo que es necesario encontrar una solución que reduzca tanto el costo como el tiempo de transportación, así como maximizar la equidad en la distribución de los suministros.
+## Subproblema 1
+
+### Modelo matematico 1
+
+Plantear modelo matematico
+
+### Reduccion BMC
+
+- Budgeted maximum coverage problem
+
+### Propuesta de algoritmo 1
+
+### Analisis de complejidad algoritmo 1
+
+## Subproblema 2
+
+### Modelo matematico 2
+
+### Reduccion HFVRP
+
+- HFVRP (heterogeneous fleet vehicle routing) problem
+
+### Propuesta de algoritmo 2
+
+### Analisis de complejidad algoritmo 2
+
+## Criticas y limitantes
