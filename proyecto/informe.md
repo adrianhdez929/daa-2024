@@ -240,7 +240,7 @@ $$
 
 Dada una instancia del problema HFVRP (heterogeneous fleet vehicle routing problem) se tiene que:
 
-- $D$: deposito de origen.
+- $S$: deposito de origen.
 - $C$: conjunto de clientes, con necesidades $q$.
 - $V$: conjunto heterogeneo (con distintas caracteristicas) de vehiculos, con capacidades $c$ y costos $d$ por unidad de distancia.
 - $M$: matriz de distancia que representa el grafo.
@@ -252,34 +252,41 @@ Por tanto nuestro problema es al menos tan complejo como HFVRP, que como el mism
   
 ### Propuesta de algoritmo 2
 
-- **Propuesta Greedy**:
+**Propuesta Greedy:**
 
 La idea general del algoritmo es asociar zonas afectadas a sucursales.
 Inicialmente asumiendo como heuristica la asociacion a la sucursal mas cercana a dicha zona.
 Este proceso termina creando una especie de clusterización de las zonas afectadas, las cuales son posibles reasignar en caso de que la sucursal mas cercana no sea capaz de suplir toda la demanda de ese cluster.
 
+**Correctitud:**
 
-- Correctitud:
+Asignando la sucursal mas cercana a cada nodo, garantizamos de primera mano que el total del recorrido a las zonas afectadas asignadas a la sucursal va a ser el menor. Supongamos que existe una ruta \(C\) asignada a una sucursal \(S_1\) que tiene un nodo \(v\) cuya distancia a otra sucursal \(S_2\) es menor a \(S_1\), entonces en la matriz de distancias del algoritmo Floyd-Warshall \(d(v, S_1) > d(v, S_2)\), luego el nodo \(v\) pertenece a la ruta asignada a la sucursal \(S_2\), lo cual es una contradiccion.
+Ademas, a la hora de verificar que la ruta asignada a una sucursal cumple las restricciones de capacidad de la flota de la sucursal, se realiza un cambio de ruta con la mas cercana que pueda satisfacer esa demanda, lo cual sigue garantizando por lo anterior que va a ser la mas corta, puesto que seria el costo total de recorrer la ruta adicionando el costo de ir de \(S_1\) a \(S_2\). Esto siempre bajo la hipotesis de relajacion que se le aplica al problema al introducir el concepto de clusters, puesto que en caso contrario es sabido que pueden existir mejores asignaciones de zonas a sucursales, pero eso implica que nuestro problema pasaria a ser un problema combinatorio no resoluble en tiempo polinomial determinista.
 
-- Ejemplo de codigo:
+**Ejemplo de codigo:**
 
 ``` python
 import sys
 import heapq as hq
-from scipy.sparse.csgraph import floyd_warshall, dijkstra
+from scipy.sparse.csgraph import floyd_warshall
 
 '''
 Input
-F: conjunto de flotas: F[i] = (c, d), asumimos que F[i] esta ordenado bajo el criterio de F[i] >= F[j] si y solo si ci/di >= cj/dj, o sea, la capacidad es mayor que el consumo 
+F: conjunto de flotas: F[i] = (c, d), asumimos que F[i] esta ordenado bajo 
+el criterio de F[i] >= F[j] si y solo si ci/di >= cj/dj, o sea, la capacidad es mayor que el consumo 
 D: conjunto de zonas: D[i] = q
-M: matriz de distancia, donde los primeros k nodos representan las sucursales, y los restantes las zonas de desastre, con k = len(F)
+M: matriz de distancia, donde los primeros k nodos representan las sucursales 
+y los restantes las zonas de desastre, con k = len(F)
 
 Output
-A: diccionario de asignacion, donde en la posicion i esta la asignacion de la ruta de la sucursal j, y dicha asignacion esta representada como una lista de los nodos que debe visitar su flota
+A: diccionario de asignacion, donde en la posicion i esta la asignacion de la ruta de la sucursal j
+y dicha asignacion esta representada como una lista de los nodos que debe visitar su flota
 '''
 def assign_routes(F, D, M):
-  # se calculan las distancias minimas entre los nodos, asi como las rutas y fuentes de los caminos de costo minimo utilizando dijkstra
-  distances, predecessors, sources = dijkstra(csgraph=graph, directed=False, indices=range(len(F)), return_predecessors=True, min_only=True)
+  # se calculan las distancias minimas entre los nodos, 
+  # asi como las rutas y fuentes de los caminos de costo minimo utilizando 
+  # floyd_warshall
+  distances, predecessors = floyd_warshall(csgraph=graph, directed=False, return_predecessors=True)
 
   # key = zona
   # value = sucursal
@@ -336,11 +343,14 @@ def assign_routes(F, D, M):
       path.reverse()
       paths[j] = path
 
-  # por cada ruta se le calcula el costo total y se verifica si su sucursal puede encargarse de proveer dicha demanda
+  # por cada ruta se le calcula el costo total y se verifica si su sucursal 
+  # puede encargarse de proveer dicha demanda
   for depot, path in paths:
     path_cost[depot] = sum([D[i] if i >= len(F) else 0 for i in path])
     
-    # si el costo de la ruta es mayor que la capacidad de la flota de la sucursal entonces se cambia con la sucursal mas cercana que tenga una flota capaz de encargarse de la demanda
+    # si el costo de la ruta es mayor que la capacidad de la flota de la sucursal 
+    # entonces se cambia con la sucursal mas cercana que tenga una flota capaz de 
+    # encargarse de la demanda
     if path_cost[depot] > depot_fleet[depot][0]:
       closest_depots = [i for i in range(len(F))]
       closest_depots.sort(key=lambda x: distances[depot, x])
@@ -360,8 +370,13 @@ def assign_routes(F, D, M):
 
 ```
 
-- Analisis de complejidad:
+**Analisis de complejidad:**
 
-### Analisis de complejidad algoritmo 2
+La implementacion el algoritmo de Floyd-Warshall de la biblioteca scipy que se utiliza en el codigo tiene una complejidad de \(O(V^3)\), donde \(V\) es la dimension de la matriz cuadrada \(M\) de adyacencia que representa el grafo del problema. 
+El ciclo para crear los clusters tiene una complejidad de \(O(SD)\), tal que \(SD \le V^2 \), por lo que asintoticamente tiene una complejidad de \(O(V^2)\). 
+La creacion de las rutas tiene una complejidad de \(O(V)\), ya que solamente pasa 1 vez por cada vertice del grafo a la hora de moverse por la lista de predecedores de Floyd-Warshall. 
+A la hora de verificar que las asignaciones son validas para el cambio la seccion tiene una complejidad de \(O(S^2logS)\). 
+
+Luego, utilizando el principio de suma de complejidad temporal para algoritmos se tiene que \(O(V^3) + O(V^2) + O(V) + O(S^2logS) = O(V^3)\), la cual es la complejidad final de nuestro algoritmo.
 
 ## Criticas y limitantes
