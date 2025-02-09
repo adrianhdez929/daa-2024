@@ -218,7 +218,7 @@ Como vimos el algoritmo está diseñado para conectar el centro de distribución
 - Como el algoritmo empieza con \(Z = \{s\}\), en cada iteración, evalúa las aristas que conectan \(Z\) con nodos aún no alcanzados. Al reparar una arista, se usa el resultado del BFS previo para actualizar \(Z\), asegurando que el nodo recién agregado y sus conexiones queden unidos a \(s\). Así, cualquier zona de desastre  marcada como atendida (\(y = 1\)) queda conectada al centro.
 - El algoritmo evalúa cada arista candidata según su razón beneficio/costo, priorizando la que maximiza la cobertura de zonas de desastre por unidad de presupuesto. Aunque es una heurística greedy y no siempre garantiza la solución óptima, genera una solución factible que optimiza la cobertura dentro del presupuesto disponible.
 
-##### Analisis de complejidad
+##### Análisis de complejidad
 Podemos decir que el tiempo de ejecución del algoritmo depende de la evaluación de las aristas candidatas y la gestión de la cola de prioridad.
 
 - En cada iteración, el algoritmo revisa las aristas que conectan el conjunto de nodos ya alcanzados \(Z\) con los que aún no están en \(Z\). En el peor de los casos, si el grafo es denso, se pueden evaluar hasta \(O(m)\) aristas. Para cada arista, se realiza un BFS en el subgrafo de las calles ya reparadas. El costo del BFS, en el peor caso, es \(O(n + m')\), donde \(n \)es el número total de nodos y \(m'\) es el número de aristas reparadas hasta el momento (normalmente \(m'\) es menor que \(m\)). Sin embargo, al guardar el resultado del BFS, se evita realizar dos búsquedas para el mismo candidato, lo que reduce el costo promedio.
@@ -230,65 +230,65 @@ Podemos decir que el tiempo de ejecución del algoritmo depende de la evaluació
 Sin optimizaciones, el algoritmo podría tener una complejidad total de \(O(n × m × T)\), donde \(T\) es el tiempo de cada BFS. Sin embargo, gracias al uso de la cola de prioridad (que permite seleccionar la mejor arista en \(O(log m\) por extracción) y a la posibilidad de reutilizar el resultado del BFS (reduciendo el coste de evaluaciones repetidas), el tiempo global se reduce en la práctica. En el peor caso optimizado, la complejidad puede aproximarse a \(O(m log m)\) o, en la práctica, es mucho menor si el grafo es moderadamente grande.
 ## Subproblema 2
 
-Este problema consiste en minimizar los costos de transportacion de recursos desde las sucursales de suministros hacia las zonas afectadas, priorizando las zonas con mayor demanda, puesto que en nuestra modelacion esto implica mayor prioridad.
-Dichos costos estan contemplados como combustible y tiempo, de ahi que sea un problema tanto de seleccion de vehiculos, como de otimizacion de rutas.
-Se agrega un conjunto de restricciones tanto a los vehiculos, como a las condiciones de seleccion de casos validos, dado que es necesario que se asemeje lo mas posible a las necesidades de un problema de la vida real.
+Este problema consiste en minimizar los costos de transportación de recursos desde las sucursales de suministros hacia las zonas afectadas, priorizando las zonas con mayor demanda, puesto que en nuestra modelación esto implica mayor prioridad.
+Dichos costos estan contemplados como combustible y tiempo, de ahí que sea un problema tanto de selección de vehículos, como de optimización de rutas.
+Se agrega un conjunto de restricciones tanto a los vehículos, como a las condiciones de selección de casos válidos, dado que es necesario que se asemeje lo más posible a las necesidades de un problema de la vida real.
 
-### Modelo matematico 2
+### Modelo matemático 2
 
 #### Dominios
 
 - $S$: Conjunto de sucursales de la agencia humanitaria.
-- $F$: Conjunto de flotas, donde $F_i$ representa la flota asociada a la sucursal $i$. Cada vehiculo de la flota tiene las siguientes propiedades:  
-  - $c$: Que representa la capacidad de carga del vehiculo.
+- $F$: Conjunto de flotas, donde $F_i$ representa la flota asociada a la sucursal $i$. Cada vehículo de la flota tiene las siguientes propiedades:  
+  - $c$: Que representa la capacidad de carga del vehículo.
   - $d$: Que representa el consumo de combustible por unidad de distancia.
 - $D$: Conjunto de zonas afectadas. Cada zona tiene una demanda $q$.
 
-#### Definicion del grafo
+#### Definición del grafo
 
 - $V$ = $S \cup D$: donde los nodos son tanto las sucursales como las zonas afectadas.
 - $E$: Las aristas entre dos nodos $i$, $j$ representan que existe un camino de $i$ a $j$. De donde siendo $e$ dicha arista, $w(e)$ representa la distancia de dicho camino.
 
-#### Variables del problema de optimizacion
+#### Variables del problema de optimización
 
-- $x_{ijkl} \in \{0, 1\}$: Toma el valor 1 si el vehiculo *j* de *F_i* viaja del nodo *l* al nodo *m*.
-- $y_{ij} \in \{0, 1\}$: Toma el valor 1 si el vehiculo *j* de *F_i* es utilizado.
+- $x_{ijkl} \in \{0, 1\}$: Toma el valor 1 si el vehículo \(j\) de \(F_i\) viaja del nodo \(l\) al nodo \(k\).
+- $y_{ij} \in \{0, 1\}$: Toma el valor 1 si el vehículo \(j\) de \(F_i\) es utilizado.
 
-#### Funcion objetivo
+#### Función objetivo
 
-Definimos la funcion objetivo como el problema de minimizar:
+Definimos la función objetivo como el problema de minimizar:
 $$
-\sum_{i \in S}{\sum_{j \in F_i}{\sum_{k in V}{\sum_{l \in V}{d_j \times w(<k, l>) \times x_{ijkl} \times y_{ij}}}}}
+\sum_{i \in S}{\sum_{j \in F_i}{\sum_{k \in V}{\sum_{l \in V}{d_j \times w(<k, l>) \times x_{ijkl} \times y_{ij}}}}}
 $$
 
-### Reduccion HFVRP
+### Reducción HFVRP
 
 - HFVRP (heterogeneous fleet vehicle routing) problem
 
 Dada una instancia del problema HFVRP (heterogeneous fleet vehicle routing problem) se tiene que:
 
-- $S$: deposito de origen.
+- $S$: depósito de origen.
 - $C$: conjunto de clientes, con necesidades $q$.
-- $V$: conjunto heterogeneo (con distintas caracteristicas) de vehiculos, con capacidades $c$ y costos $d$ por unidad de distancia.
+- $V$: conjunto heterogéneo (con distintas características) de vehículos, con capacidades $c$ y costos $d$ por unidad de distancia.
 - $M$: matriz de distancia que representa el grafo.
 
-El objetivo es asignar rutas a vehiculos, tal que cada vehiculo este asignado a al menos un cliente y todos los clientes tengan una ruta asignada, minimizando el costo total de consumo y distancia.
-La funcion de conversion de una instancia de HFVRP a una de nuestro problema, es simplemente definirla tal que la cantidad de nodos de salida (depositos) es igual a 1.
-Dado que nuestro problema es una version mas general de HFVRP, dado que la cantidad de depositos de origen es mayor que 1, toda instancia valida de HFVRP es una instancia valida de nuestro problema.
-Por tanto nuestro problema es al menos tan complejo como HFVRP, que como el mismo es NP-Hard, nuestro problema es tambien NP-Hard.
+El objetivo es asignar rutas a vehículos, tal que cada vehículo este asignado a al menos un cliente y todos los clientes tengan una ruta asignada, minimizando el costo total de consumo y distancia.
+La función de conversión de una instancia de HFVRP a una de nuestro problema, es simplemente definirla tal que la cantidad de nodos de salida (depósitos) es igual a 1.
+Dado que nuestro problema es una versión más general de HFVRP, dado que la cantidad de depósitos de origen es mayor que 1, toda instancia válida de HFVRP es una instancia válida de nuestro problema.
+Por tanto nuestro problema es al menos tan complejo como HFVRP, que como el mismo es NP-Hard, nuestro problema es también NP-Hard.
   
 ### Propuesta de algoritmo 2
 
 **Propuesta Greedy:**
 
 La idea general del algoritmo es asociar zonas afectadas a sucursales.
-Inicialmente asumiendo como heuristica la asociacion a la sucursal mas cercana a dicha zona.
-Este proceso termina creando una especie de clusterización de las zonas afectadas, las cuales son posibles reasignar en caso de que la sucursal mas cercana no sea capaz de suplir toda la demanda de ese cluster.
+Inicialmente asumiendo como heurística la asociación a la sucursal más cercana a dicha zona.
+Este proceso termina creando una especie de clusterización de las zonas afectadas, las cuales pueden ser reasignadas en caso de que la sucursal más cercana no sea capaz de suplir toda la demanda de ese cluster.
 
 **Correctitud:**
 
-Asignando la sucursal mas cercana a cada nodo, garantizamos de primera mano que el total del recorrido a las zonas afectadas asignadas a la sucursal va a ser el menor. Supongamos que existe una ruta \(C\) asignada a una sucursal \(S_1\) que tiene un nodo \(v\) cuya distancia a otra sucursal \(S_2\) es menor a \(S_1\), entonces en la matriz de distancias del algoritmo Floyd-Warshall \(d(v, S_1) > d(v, S_2)\), luego el nodo \(v\) pertenece a la ruta asignada a la sucursal \(S_2\), lo cual es una contradiccion.
-Ademas, a la hora de verificar que la ruta asignada a una sucursal cumple las restricciones de capacidad de la flota de la sucursal, se realiza un cambio de ruta con la mas cercana que pueda satisfacer esa demanda, lo cual sigue garantizando por lo anterior que va a ser la mas corta, puesto que seria el costo total de recorrer la ruta adicionando el costo de ir de \(S_1\) a \(S_2\). Esto siempre bajo la hipotesis de relajacion que se le aplica al problema al introducir el concepto de clusters, puesto que en caso contrario es sabido que pueden existir mejores asignaciones de zonas a sucursales, pero eso implica que nuestro problema pasaria a ser un problema combinatorio no resoluble en tiempo polinomial determinista.
+Asignando la sucursal más cercana a cada nodo, garantizamos de primera mano que el total del recorrido a las zonas afectadas asignadas a la sucursal será el menor. Supongamos que existe una ruta \(C\) asignada a una sucursal \(S_1\) que tiene un nodo \(v\) cuya distancia a otra sucursal \(S_2\) es menor a \(S_1\), entonces en la matriz de distancias del algoritmo Floyd-Warshall se cumple que \(d(v, S_1) > d(v, S_2)\), luego el nodo \(v\) pertenece a la ruta asignada a la sucursal \(S_2\), lo cual es una contradicción.
+Además, a la hora de verificar que la ruta asignada a una sucursal cumple las restricciones de capacidad de la flota de la sucursal, se realiza un cambio de ruta con la más cercana que pueda satisfacer esa demanda, lo cual sigue garantizando, por lo anterior, que será la mas corta, puesto que sería el costo total de recorrer la ruta adicionando el costo de ir de \(S_1\) a \(S_2\). Esto siempre bajo la hipótesis de relajación que se le aplica al problema al introducir el concepto de clusters, puesto que, en caso contrario, es sabido que pueden existir mejores asignaciones de zonas a sucursales, pero eso implica que nuestro problema pasaría a ser un problema combinatorio no resoluble en tiempo polinomial determinista.
 
 **Ejemplo de codigo:**
 
@@ -397,12 +397,12 @@ def assign_routes(F, D, M):
 
 ```
 
-**Analisis de complejidad:**
+**Análisis de complejidad:**
 
-La implementacion el algoritmo de Floyd-Warshall de la biblioteca scipy que se utiliza en el codigo tiene una complejidad de \(O(V^3)\), donde \(V\) es la dimension de la matriz cuadrada \(M\) de adyacencia que representa el grafo del problema. 
-El ciclo para crear los clusters tiene una complejidad de \(O(SD)\), tal que \(SD \le V^2 \), por lo que asintoticamente tiene una complejidad de \(O(V^2)\). 
-La creacion de las rutas tiene una complejidad de \(O(V)\), ya que solamente pasa 1 vez por cada vertice del grafo a la hora de moverse por la lista de predecedores de Floyd-Warshall. 
-A la hora de verificar que las asignaciones son validas para el cambio la seccion tiene una complejidad de \(O(S^2logS)\). 
+La implementación el algoritmo de Floyd-Warshall de la biblioteca scipy que se utiliza en el código tiene una complejidad de \(O(V^3)\), donde \(V\) es la dimensión de la matriz cuadrada \(M\) de adyacencia que representa el grafo del problema. 
+El ciclo para crear los clusters tiene una complejidad de \(O(SD)\), tal que \(SD \le V^2 \), por lo que asintóticamente tiene una complejidad de \(O(V^2)\). 
+La creación de las rutas tiene una complejidad de \(O(V)\), ya que solamente pasa 1 vez por cada vértice del grafo a la hora de moverse por la lista de predecedores de Floyd-Warshall. 
+A la hora de verificar que las asignaciones son válidas para el cambio la sección tiene una complejidad de \(O(S^2logS)\). 
 
 Luego, utilizando el principio de suma de complejidad temporal para algoritmos se tiene que \(O(V^3) + O(V^2) + O(V) + O(S^2logS) = O(V^3)\), la cual es la complejidad final de nuestro algoritmo.
 
