@@ -198,9 +198,48 @@ Dado que hemos demostrado que toda solución factible para BMC se puede transfor
 
 
 ### Propuesta de algoritmo 1
+Dado que es un problema NP-hard, se emplea un algoritmo heurístico basado en una estrategia greedy. En cada iteración, se elige la arista que proporcione la mejor relación beneficio/costo, es decir, aquella que permita conectar la mayor cantidad de zonas de desastre nuevas por cada unidad de presupuesto invertida.
+
+El beneficio se mide en términos de la ganancia marginal, que corresponde a la suma de las prioridades de los nodos de desastre que se lograrían conectar al reparar una arista. El costo es simplemente el costo de reparación de la arista. La razón beneficio/costo se obtiene dividiendo la ganancia marginal entre el costo de la arista.
+
+##### Algoritmo 
+Comenzamos definiendo el conjunto de nodos 𝑍, que al principio contiene solo \(s\) (\(Z=\{s\})\), el centro de distribución. Además, se asigna un presupuesto total 𝐵, y por otro lado, se crea el conjunto 𝐸 de aristas reparadas, que se mantendrá actualizado con las aristas que se hayan reparado.
+
+Para gestionar el proceso de selección de aristas, se emplea una cola de prioridad, que mantiene ordenadas las aristas que conectan 𝑍 con nodos fuera de 𝑍. Estas aristas las denominaremos “frontera” y serán evaluadas para determinar cuál ofrece la mejor relación beneficio/costo.
+
+Para cada arista candidata 𝑒=(𝑢,𝑣) tal que 𝑢∈𝑍 y 𝑣∉𝑍, se realiza una búsqueda BFS partiendo de \(v\) en el subgrafo de aristas reparadas para simular qué nodos serían alcanzables en caso de que se repare la arista \(e\) y para determinar cuántos de esos nodos alcanzables son zonas de desastre (nodos en \(D\)), ya que estos aportan una ganancia en términos de prioridad.
+
+Una vez identificados los nodos alcanzables, se calcula la ganancia marginal, que corresponde a la suma de las prioridades de los nodos de desastre alcanzables tras la reparación de \(e\). Luego, se determina la razón beneficio/costo, dividiendo la ganancia marginal entre el costo de la arista \(e\). Toda esta información se almacena en la cola de prioridad, de modo que la arista con la mejor relación beneficio/costo quede en la primera posición, facilitando su selección en la siguiente etapa.
+
+Entonces, se extrae de la cola de prioridad la arista con la mayor razón beneficio/costo. Se verifica que su costo no exceda el presupuesto restante. Si la arista es viable, se repara:
+- Se agrega al conjunto \(E\).
+- Se descuenta su costo del presupuesto.
+- Se actualiza el conjunto de nodos conectados \(Z\) sin necesidad de realizar otro BFS. En su lugar, se usa la información guardada anteriormente en la cola, permitiendo que, además de \(v\), se incorporen a \(Z\) todos los nodos alcanzables desde \(v\), garantizando una expansión eficiente de la conectividad en el grafo.
+
+Tras actualizar \(Z\), se revisan todas las aristas que parten de los nodos recién incorporados y que conducen a nodos que aún no han sido alcanzados. Estas nuevas aristas se añaden a la frontera y se someten al mismo proceso de evaluación. El procedimiento de evaluación, selección y actualización se repite mientras existan aristas en la frontera y haya presupuesto disponible para seguir reparando.
+
+El algoritmo finaliza en dos posibles escenarios:
+- No queda suficiente presupuesto para reparar ninguna arista en la frontera.
+- No existen más aristas que conecten \(Z\) con nodos fuera de \(Z\), o la ganancia marginal de todas las aristas restantes es cero, es decir, no se pueden conectar nuevas zonas de desastre.
+
+Al concluir, el algoritmo devuelve el conjunto \(E\) con las aristas reparadas y Z con todos los nodos que quedaron conectados al centro de distribución mediante calles reparadas.
+
+##### Correctitud
+Como vimos el algoritmo está diseñado para conectar el centro de distribución (nodo \(s\)) con la mayor cantidad de zonas de desastre (nodos en \(D\) con prioridad) sin exceder un presupuesto \(B\). La estrategia consiste en cada paso, seleccionar la arista que ofrezca el mejor “retorno” (es decir, la mayor ganancia en prioridades de nodos nuevos) por cada unidad de presupuesto invertida. Para demostrar que el algoritmo produce una solución válida, se verifica que:
+- Cada vez que el algoritmo evalúa una arista candidata, se comprueba que su costo no exceda el presupuesto restante. Al reparar una arista, se descuenta su costo del presupuesto. De esta forma, la suma de los costos de todas las aristas reparadas nunca supera \(B\).
+- Como el algoritmo empieza con \(Z = \{s\}\), en cada iteración, evalúa las aristas que conectan Z con nodos aún no alcanzados. Al reparar una arista, se usa el resultado del BFS previo para actualizar Z, asegurando que el nodo recién agregado y sus conexiones queden unidos a s. Así, cualquier zona de desastre  marcada como atendida (y = 1) queda conectada al centro.
+- El algoritmo evalúa cada arista candidata según su razón beneficio/costo, priorizando la que maximiza la cobertura de zonas de desastre por unidad de presupuesto. Aunque es una heurística greedy y no siempre garantiza la solución óptima, genera una solución factible que optimiza la cobertura dentro del presupuesto disponible.
 
 ### Analisis de complejidad algoritmo 1
+Podemos decir que el tiempo de ejecución del algoritmo depende de la evaluación de las aristas candidatas y la gestión de la cola de prioridad.
 
+- En cada iteración, el algoritmo revisa las aristas que conectan el conjunto de nodos ya alcanzados \(Z\) con los que aún no están en Z. En el peor de los casos, si el grafo es denso, se pueden evaluar hasta O(m) aristas. Para cada arista, se realiza un BFS en el subgrafo de las calles ya reparadas. El costo del BFS, en el peor caso, es O(n + m'), donde n es el número total de nodos y m' es el número de aristas reparadas hasta el momento (normalmente m' es menor que m). Sin embargo, al guardar el resultado del BFS, se evita realizar dos búsquedas para el mismo candidato, lo que reduce el costo promedio.
+
+- Cada arista candidata evaluada se inserta en la cola de prioridad. La inserción o extracción de un elemento en una cola de prioridad tiene un costo de O(log f), donde f es el número de aristas en la frontera. En el peor caso, f es O(m). Esto significa que cada operación en la cola cuesta O(log m).
+
+- El algoritmo añade nodos a Z en cada iteración. En el peor caso, se pueden agregar hasta O(n) nodos. En cada iteración, se evalúan las aristas que salen de los nodos recién agregados. Si se asume que en promedio se evalúa un número constante de aristas, el número total de iteraciones es O(n). En el peor caso, si se evaluaran muchas aristas en cada iteración, se podría llegar a O(m).
+
+Sin optimizaciones, el algoritmo podría tener una complejidad total de O(n × m × T), donde T es el tiempo de cada BFS. Sin embargo, gracias al uso de la cola de prioridad (que permite seleccionar la mejor arista en O(log m) por extracción) y a la posibilidad de reutilizar el resultado del BFS (reduciendo el coste de evaluaciones repetidas), el tiempo global se reduce en la práctica. En el peor caso optimizado, la complejidad puede aproximarse a O(m log m) o, en la práctica, es mucho menor si el grafo es moderadamente grande.
 ## Subproblema 2
 
 Este problema consiste en minimizar los costos de transportacion de recursos desde las sucursales de suministros hacia las zonas afectadas y encontrar asignaciones validas de sucursales capaces de suplir la demanda de los distintos conjuntos de zonas afectadas.
