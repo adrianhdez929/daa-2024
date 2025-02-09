@@ -92,9 +92,8 @@ Por tanto nuestro problema es al menos tan complejo como HFVRP, que como el mism
 
 La idea general del algoritmo es asociar zonas afectadas a sucursales.
 Inicialmente asumiendo como heuristica la asociacion a la sucursal mas cercana a dicha zona.
-Luego se asignan vehiculos a distintas zonas, para crear las rutas, de forma tal que la suma de las demandas no exceda las capacidades, tanto del vehiculo en cuestion como de la flota de la sucursal en cuestion.
-Como nuestro modelo original se enfoca en minimizar costos, podemos cambiar dicho enfoque para maximizar ahorros, con lo cual se utiliza una cola de prioridad para ordenar dichos ahorros por ruta, independientemente del deposito.
-Luego se van extrayendo las tuplas de ruta y deposito de la cola, verificando si dicha asignacion mejora la ya existente, en cuyo caso se sobreescribe el resultado.
+Este proceso termina creando una especie de clusterización de las zonas afectadas, las cuales son posibles reasignar en caso de que la sucursal mas cercana no sea capaz de suplir toda la demanda de ese cluster.
+
 
 - Correctitud:
 
