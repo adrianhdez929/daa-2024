@@ -203,8 +203,18 @@ Dado que hemos demostrado que toda solución factible para BMC se puede transfor
 
 ## Subproblema 2
 
-Este problema consiste en minimizar los costos de transportacion de recursos desde las sucursales de suministros hacia las zonas afectadas, priorizando las zonas con mayor demanda, puesto que en nuestra modelacion esto implica mayor prioridad.
-Dichos costos estan contemplados como combustible y tiempo, de ahi que sea un problema tanto de seleccion de vehiculos, como de otimizacion de rutas.
+Este problema consiste en minimizar los costos de transportacion de recursos desde las sucursales de suministros hacia las zonas afectadas y encontrar asignaciones validas de sucursales capaces de suplir la demanda de los distintos conjuntos de zonas afectadas.
+
+El criterio para una zona ser capaz de suplir la demanda de un conjunto de zonas esta dado por su flota: 
+
+$$
+  \sum_{v \in F}{c_v} \ge \sum_{u \in C}{q_u}
+$$
+
+Donde \(C\) es una asignacion de zonas a la sucursal \(S\) con flota \(F\).
+
+Dichos costos estan contemplados como combustible y tiempo, pero se asume un costo fijo basado en distancia para relajar el problema y llegar a una solucion polinomial.
+
 Se agrega un conjunto de restricciones tanto a los vehiculos, como a las condiciones de seleccion de casos validos, dado que es necesario que se asemeje lo mas posible a las necesidades de un problema de la vida real.
 
 ### Modelo matematico 2
