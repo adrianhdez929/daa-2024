@@ -24,14 +24,178 @@ Se desea saber si existe un conjunto de caminos que se pueden arreglar con el pr
 Cada zona afectada D_k, tiene una demanda especifica de suministros que debe ser satisfecha exactamente una vez por un unico vehiculo. Un vehiculo asignado debe partir de su sucursal de origen y visitar un conjunto de zonas {D_k_1, D_k_2, ...} y regresar a su sucursal. La suma de las demandas q_k en las zonas visitadas por un vehiculo no puede exceder la capacidad c_i_j. De ser necesario no todos los vehiculos deben utilizarse, ya que esto podria minimizar costos. Se desea minimizar el costo de combustible de todos los vehiculos, donde el costo esta dado como: d_i_j * distancia recorrida por F_i_j (vehiculo j de la flota i).
 
 ## Subproblema 1
+(**Opción 1**)
+Nuestro problema se basa en querer optimizar la llegada de suministros a las zonas afectadas luego del desastre, por lo que el problema se puede dividir en dos subproblemas:
+1. Determinar el conjunto de calles que se pueden reparar con el presupuesto disponible.
+2. Maximizar el conjunto de zonas de mayor prioridad que se pueden atender con los caminos reparados.
+
+Es decir buscamos identificar un conjunto de calles que, al ser reparadas con el presupuesto disponible, permitan conectar el centro de distribución con las zonas críticas, de manera que alcance a la mayor cantidad posible de zonas, priorizando aquellas con mayor demanda
+
+(**Opción 2**)
+Nuestro problema se basa en optimizar la llegada de suministros a las zonas afectadas luego del desastre, lo que implica determinar el conjunto de calles que se pueden reparar con el presupuesto disponible y, al mismo tiempo, maximizar la atención a las zonas de mayor prioridad a través de los caminos reparados. Es decir, buscamos identificar un conjunto de calles que, al ser reparadas, permitan conectar el centro de distribución con las zonas críticas, de manera que se alcance a la mayor cantidad posible de áreas afectadas, priorizando aquellas con mayor demanda.
+
+
+**Nota:** Es importante aclarar que algunas zonas de desastre, incluso aquellas de alta prioridad, pueden ser accesibles a través de vías que no han resultado dañadas y, por lo tanto, no requieren reparación. En nuestro modelo, asumimos que sólo se reparan aquellas calles afectadas que impiden la conexión entre el centro de distribución y las zonas críticas. Si una zona ya es accesible mediante vías operativas, se considera automáticamente conectada, y los recursos se destinan exclusivamente a la reparación de los tramos dañados.
+
+
 
 ### Modelo matematico 1
+Para formalizar el problema, partimos de un grafo ponderado que representa la red de la zona afectada. Como planteamos anteriormente el objetivo es determinar cuáles calles reparar (dentro de un presupuesto \(B\) ) de modo que se conecte el centro de distribución con las zonas de desastre más críticas (priorizadas según un valor \(P_i\) ). Para ello, definiremos variables que indican la reparación de calles y la atención de zonas, y utilizaremos un modelo de flujo para certificar la conectividad del centro con las zonas que deben ser atendidas.
 
-Plantear modelo matematico
+
+Dado un grafo \( G = (V, E) \), \( V \) el conjunto de nodos que incluye intersecciones, centros de distribución y zonas de desastre y \( E \) el conjunto de aristas, donde cada arista \( (i,j) \) tiene un costo de reparación \( c_{i,j} \).
+
+
+Sea \( D \subset V \) el conjunto de zonas de desastre. Para cada zona \( i \in D \), se asigna una prioridad \( P_i \); un valor mayor de \( P_i \) indica que la zona tiene mayor urgencia de atención.
+
+Existe un nodo fuente \( s \in V \) que representa el centro de distribución. Desde este nodo se inyecta el suministro, y se asume que la cantidad de suministros es suficiente para atender a todas las zonas conectadas; por ello, el criterio principal es lograr la conectividad.
+
+Sea \( B \) el monto total disponible para reparar calles. La suma de los costos de las calles seleccionadas (aristas reparadas) no debe exceder \( B \).
+
+#####  Variables de Decisión
+
+Para cada \( (i,j) \in E \):
+- \( x_{i,j} \in \{0,1\} \):  
+  - \( x_{i,j} = 1 \) indica que la calle (arista) \( (i,j) \) se repara.
+  - \( x_{i,j} = 0 \) indica que la calle no es reparada.
+
+
+Para cada \( i \in D \):
+- \( y_i \in \{0,1\} \):  
+  - \( y_i = 1 \) indica que la zona de desastre \( i \) es atendida (es decir, se conecta al centro de distribución \( s \) mediante calles reparadas).
+  - \( y_i = 0 \) en caso contrario.
+
+##### Variables de flujo:
+
+Para cada arco \( (i,j) \) (versión dirigida de \( E \)):
+- \( f_{ij} \geq 0 \): Representa la cantidad de flujo que circula por la arista (o tramo) \( (i,j) \).  
+  - El flujo solo puede circular por aquellas aristas que se han reparado, lo cual se garantiza mediante restricciones adicionales. 
+**Nota:** Más adelante explicaremos por qué utilizamos un modelo de flujo para garantizar la conectividad y cómo se demuestra que, si se marca una zona como atendida (es decir, si \( y_i = 1 \)), entonces existe un camino de conexión entre el centro de distribución \( s \) y dicha zona \( i \)  a través de las calles reparadas.
+
+
+#### Restricciones y Función Objetivo del modelo
+
+##### Restricción Presupuestaria
+La suma de los costos de reparación de las calles seleccionadas no debe exceder el presupuesto:
+
+\[
+\sum_{(i,j) \in E} c_{i,j} \, x_{i,j} \leq B
+\]
+
+
+##### Restricción de Conectividad mediante Flujo
+Para garantizar que, si se decide atender una zona \( i \) (es decir, si \( y_i = 1 \)), exista un camino efectivo desde el nodo fuente \( s \) hasta \( i \) formado únicamente por calles reparadas, incorporamos un modelo de flujo con las siguientes condiciones:
+
+ **Inyección de Flujo en \( s \):**
+Se “inyecta” un total de \( F \) unidades de flujo en el nodo fuente \( s \). Este valor \( F \) se elige de forma que sea suficiente para cubrir las demandas de todos los nodos que se pretenden conectar.
+
+**Conservación de Flujo en los Nodos:**
+Para cada nodo \( v \) distinto de \( s \) (es decir, \( v \in V \setminus \{s\} \)), se impone una restricción de conservación de flujo modificada. En un modelo de flujo estándar, la cantidad de flujo que entra en un nodo es igual a la que sale, de modo que el balance neto o "exceso" es cero. Sin embargo, en nuestro caso, queremos que la diferencia neta (flujo que entra menos flujo que sale) sea igual a \( y_v\). Esto significa que:
+
+- Si \( y_v = 0 \) (la zona \(v\) no está marcada para ser atendida), el flujo que entra a \(v\) debe ser igual al que sale, es decir, el balance neto es cero.
+- Si \( y_v = 1 \) (la zona \(v\) debe ser atendida), el balance neto en \(v\) debe ser 1. Esto obliga a que \(v\) reciba una unidad extra de flujo en comparación con la que envía, lo que equivale a decir que \(v\) tiene una “demanda” de 1 unidad. La única forma de cumplir esta restricción es que exista un camino por el cual la unidad de flujo inyectada en \(s\) pueda pueda llegar hasta \(v\).
+
+Para formalizar esto, utilizamos la siguiente ecuación de conservación de flujo para cada nodo $ v \neq s $ 
+
+\[
+\sum_{i:(i,v) \in E'} f_{iv} - \sum_{j:(v,j) \in E'} f_{vj} = y_v
+\]
+
+En esta ecuación, \( E' \) representa la versión dirigida de las aristas del grafo, y \( f_{ij} \)(como planteamos) es la cantidad de flujo que circula por el arco \( (i,j) \). Si \( y_v = 1 \), la ecuación exige que el flujo neto en \( v \) sea exactamente 1, lo que implica que 1 unidad de flujo ha sido transportada desde \( s \) hasta \( v \).
+
+Sin embargo, para que el flujo pueda circular, debe existir una condición adicional: el flujo solo puede transitar por las calles que se han reparado. Esto se garantiza mediante la restricción:
+
+\[
+f_{ij} \leq M \, x_{ij}, \quad \forall (i,j) \in E'
+\]
+
+donde \( x_{ij} \) es la variable binaria que vale 1 si la calle (o arco) \( (i,j) \) se repara, y \( M \) es una constante suficientemente grande que no limite el flujo cuando la calle esté reparada. Si una calle no se repara, \( x_{ij} = 0 \), y la restricción impone \( f_{ij} = 0 \), es decir, no se permite el paso de flujo por ese arco.
+
+Al imponer estas restricciones, el modelo obliga a que, para que se cumpla que un nodo \( v \) reciba una unidad neta de flujo (cuando \( y_v = 1 \)), debe existir un camino formado únicamente por calles reparadas que conecte \( s \) con \( v \). Si no existiera dicho camino, \( v \) no podría acumular la unidad de flujo requerida y la restricción de conservación se violaría, lo que significa que no sería posible marcar \( v \) como atendida.
+
+Al diseñar el modelo de esta forma, asumimos únicamente los caminos que contienen calles reparadas, ya que la restricción de capacidad \[f_{ij} \leq M \, x_{ij}\]
+
+evita que cualquier flujo circule por una calle dañada (o no reparada). Asegurando que la única forma de satisfacer la condición de que el flujo neto en \( v \) sea 1 es que se encuentre un camino compuesto exclusivamente por calles que han sido reparadas con el presupuesto disponible.
+
+(**Opcional**)
+El uso del modelo de flujo nos permite “certificar” la conectividad. Al inyectar \( F \) unidades de flujo en \( s \) y exigir que, para cada nodo \( v \) marcado como atendido (\( y_v = 1 \)), el balance neto de flujo sea 1, garantizamos que existe un camino de \( s \) a \( v \) formado únicamente por calles reparadas. Esto es fundamental para asegurar que, en la solución final del problema, la distribución de suministros se realice efectivamente a través de rutas operativas y no de caminos dañados.
+
+
+
+##### Función Objetivo
+Como hemos comentado el objetivo es maximizar la suma de las prioridades de las zonas conectadas:
+
+\[
+\max \sum_{i \in D} P_i \, y_i
+\]
+
+Esta formulación integra la restricción presupuestaria, la garantía de conectividad mediante el flujo (que certifica que las zonas atendidas están conectadas al centro de distribución) y la maximización de la cobertura de zonas de desastre de mayor prioridad.
+
+
 
 ### Reduccion BMC
 
-- Budgeted maximum coverage problem
+
+Para demostrar que nuestro problema es, al menos, tan difícil como Budgeted Maximum Coverage (BMC), un problema conocido por ser NP-hard, realizaremos una reducción polinomial. En esta reducción transformaremos cualquier instancia de BMC en una instancia de nuestro problema de tal manera que resolverlo permita, resolver BMC. 
+
+Antes de realizar la reducción debemos demostrar que nuestro problema está en NP ya que para que un problema sea NP-hard, primero debe estar en NP. Esto significa que si tomamos una solución por ejemplo un conjunto de calles reparadas y un conjunto de zonas atendidas, podemos verificar en tiempo polinomial que la solución es válida. Verificar que el costo total de reparación no excede \(B\) es \(O(m)\) siendo \(m\) el número de arista o calles, nos es mas que sumar los costos de reparacion de todas estas aristas. Verificar que cada zona atendida está conectada al centro de distribución puede hacerse con BFS o DFS en \(O(n+m)\) siendo \(n\) el número de nodos. Y por ultimo la evaluación de las prioridades sería \(O(n)\)
+Como todas estas verificaciones pueden hacerse en tiempo polinomial, nuestro problema pertenece a NP.
+
+##### Descripción del Problema Budgeted Maximum Coverage (BMC)
+En el problema Budgeted Maximum Coverage se tiene un  conjunto universo de elementos, denotado por \( U = \{u_1, u_2, \dots, u_n\} \). Cada elemento \(u\) tiene un peso \( w(u) \). Una colección de subconjuntos \( S = \{S_1, S_2, \dots, S_m\} \) donde cada \( S_i \subseteq U \) y cada subconjunto \( S_i\) tiene un costo \( c(S_i) \) asociado. Un valor \(B\) que limita la suma de los costos de los subconjuntos que se pueden seleccionar.
+El objetivo es seleccionar una colección de subconjuntos \( S' \subseteq S \) tal que la suma de los costos de los subconjuntos elegidos no exceda \(B\)
+\[
+\sum_{S \in S'} c(S) \leq B
+\]
+y la suma de los pesos de los elementos cubiertos (es decir, la suma de \(w(u)\) para \(u\) perteneciente a la unión de los subconjuntos seleccionados) sea máxima.
+
+
+##### Reducción de BMC a Nuestro Problema
+
+Nuestro problema se centra en elegir un conjunto de calles (aristas) para reparar con un presupuesto \(B\) de modo que se conecte el centro de distribución con las zonas de desastre de mayor prioridad. La idea es transformar una instancia de BMC en una instancia de nuestro problema.
+
+Construimos un grafo \( G' = (V', E') \) de la siguiente forma:
+
+- Creamos un nodo fuente \(s\) que representa el centro de distribución.
+
+- Para cada subconjunto \( S_i\) en la colección, creamos un nodo intermedio \( s_i \) y se añade una arista \( (s, s_i) \) con costo \(c(s, S_i) = c(S_i)\) (es decir el costo del subconjunto \(S_i\)en la instancia de BMC). La idea es que, si se “repara” la calle que conecta \(s\) con \(s_i\) se estará seleccionando el subconjunto \(S_i\) en la solución.
+
+
+- Para cada elemento \( u \) del universo \(U\), creamos un nodo \(v(u) \) ó \( u \in  V' \). Estos nodos representarán las “zonas de desastre” y se les asigna una prioridad \(P(v(u) )\) igual al peso \(w(u)\) del elemento \(u\)
+
+- Para cada elemento \(u\) y para cada subconjunto \(S_i\) que contenga a \(u\) (es decir, \(u \in S_i\))  se añade una arista desde el nodo \(s_i\) al nodo \(v(u)\) con costo cero (o, en la práctica, un costo despreciable). Estas aristas no afectan el presupuesto, pero permiten saber que si se selecciona \(S_i\) (si se “repara” \((s,s_i)\)), todos los nodo \(v(u)\) correspondientes a los elemntos de \(S_i\) se conecten al centro \(s\).
+
+Según esta construcción podemos decir que reparar una arista \((s,s_i)\) equivale a seleccionar el subconjunto \(S_i\) de la instancia de BMC, ya que ello implica que los nodos \(v(u)\) correspondientes a los elementos \(u \in S_i\) quedarán conectados al nodo fuente \(s\), estas aristas de costo cero no afectan el presupuesto y garantizan que, una vez seleccionada la arista \((s,s_i)\), todos los nodos \(v(u)\) queden conectados al nodo fuente \(s\).
+El presupuesto \(B\) se aplica a la suma de los costos de las aristas \((s,s_i)\) que es exactamente la suma de los costos de los subconjuntos seleccionados. Y el objetivo de maximizar la suma de las prioridades de las zonas conectadas se corresponde con maximizar la suma de los pesos de los elementos cubiertos en BMC.
+
+##### Demostremos que:
+**Si existe una solución para BMC, entonces existe una solución para nuestro problema**
+
+Supongamos que en la instancia de BMC se selecciona una colección de subconjuntos \(S' ⊆ S \) tal que el costo total 
+
+\[
+\sum_{S_i \in S'} c(S_i) \leq B
+\]
+y la suma de los pesos de los elementos cubiertos (la suma de \(w(u)\) para \(u\) en la unión de los subconjuntos seleccionados) es \(W\)
+
+En nuestra construcción, para cada subconjunto \( S_i \in S' \), repararemos la arista \( (s, s_i) \). Esto implica que, a través de las aristas de costo cero, todos los nodos \( v(u) \) correspondientes a los elementos \( u \) que pertenecen a algún \( S_i \in S' \) quedarán conectados al nodo fuente \( s \). Por lo tanto, en la solución de nuestro problema, se obtendrá que para cada elemento \( u \) cubierto por la solución de BMC, el correspondiente nodo \( v(u) \) estará atendido (se asignará \( y_{v(u)} = 1 \)). La suma de las prioridades de los nodos atendidos será, entonces, \( W \).
+
+Además, el costo total para reparar las calles \( (s, s_i) \) es exactamente la suma de los costos \( c(S_i) \) para \( S_i \in S' \), la cual no excede \( B \). Así, la solución factible para BMC se transforma en una solución factible para nuestro problema con el mismo presupuesto y un valor objetivo igual a la suma de los pesos de los elementos cubiertos.
+
+
+**Si existe una solución para nuestro problema, entonces existe una solución para BMC**
+
+Supongamos que en nuestro problema se ha obtenido una solución en la que se repara un conjunto de aristas de modo que el nodo fuente \( s \) queda conectado con un conjunto de nodos \( v(u) \) (cada uno correspondiente a un elemento \( u \) de \( U \)). Llamemos \( S' \) al conjunto de nodos intermedios \( s_i \) para los cuales la arista \( (s, s_i) \) fue reparada. La reparación de \( (s, s_i) \) significa que se “selecciona” el subconjunto \( S_i \) correspondiente. 
+
+Debido a que, mediante las aristas de costo cero, los nodos \( v(u) \) se conectan a \( s \) solo si existen algunos \( s_i \) que los cubren, la colección de subconjuntos \( S' \) cubre los elementos correspondientes a los nodos \( v(u) \) conectados. Además, el costo total de las aristas \( (s, s_i) \) reparadas es menor o igual a \( B \).
+
+Por lo tanto, la solución de nuestro problema da una colección de subconjuntos \( S' \) de la instancia de BMC que cumple la restricción presupuestaria y cubre un conjunto de elementos cuya suma de pesos es igual al valor objetivo obtenido en nuestro problema.
+
+
+Podemos concluir que la transformación de una instancia de Budgeted Maximum Coverage (BMC) a nuestro problema se realiza de manera polinomial, la creación de nodos y aristas tal y como lo describimos, el tiempo es proporcional al tamaño del universo \( U \) y de la colección \( S \) La correspondencia entre la selección de subconjuntos en BMC y la reparación de aristas \( (s, s_i) \) en nuestro problema es directa y la cobertura de elementos en BMC se traduce en la conectividad de los nodos \( v(u) \) (con prioridad igual a \( w(u) \)) a \( s \).
+
+Dado que hemos demostrado que toda solución factible para BMC se puede transformar en una solución factible para nuestro problema y viceversa, podemos decir que nuestro problema es, al menos, tan difícil como el problema Budgeted Maximum Coverage, el cual es **NP-hard**. 
+
 
 ### Propuesta de algoritmo 1
 
