@@ -219,7 +219,8 @@ Input:
   G: Grafo que representa la red de calles
   s: Nodo central (origen de distribución)
   D: Conjunto de nodos que son zonas de desastre (por ejemplo, {'a', 'b', 'c'})
-  P: Diccionario con las prioridades asignadas a cada zona de desastre, e.g. {'a': 5, 'b': 3, 'c': 8}
+  P: Diccionario con las prioridades asignadas a cada zona de desastre,
+  por ejemplo, {'a': 5, 'b': 3, 'c': 8}  
   B: Presupuesto total disponible para reparar calles
 
 Output:
@@ -258,7 +259,8 @@ def bfs_simulation(start_node, candidate_edge, E_repaired, Z, G):
 def greedy_repair_algorithm(G, s, D, P, B):
     """
     - Se inicia con Z = {s} y un presupuesto B.
-    - Se construye una cola de prioridad con las aristas de "frontera" evaluadas por la razón (beneficio marginal / costo).
+    - Se construye una cola de prioridad con las aristas de "frontera" 
+    evaluadas por la razón (beneficio marginal / costo).
     - Se selecciona la arista de mayor razón
     - Se actualiza E_repaired, Z, y el presupuesto; luego se agregan
       nuevas aristas de frontera.
@@ -310,9 +312,16 @@ def greedy_repair_algorithm(G, s, D, P, B):
                     continue
                 # Simula la reparación de candidate_edge(arista candidata)
                 candidate_reachable = bfs_simulation(node, candidate_edge, E_repaired, Z, G)
-                candidate_benefit = sum(P.get(n,0) for n in candidate_reachable if n in D and n not in Z)
-                candidate_ratio = candidate_benefit / candidate_cost if candidate_cost != 0 else float('inf')
-                heapq.heappush(frontier, (-candidate_ratio, candidate_cost, candidate_edge, candidate_reachable))
+                candidate_benefit = sum(
+                  P.get(n,0) for n in candidate_reachable 
+                    if n in D and n not in Z
+                )
+                candidate_ratio = candidate_benefit / candidate_cost 
+                if candidate_cost == 0:
+                  candidate_ratio = float('inf')
+                heapq.heappush(
+                  frontier, 
+                  (-candidate_ratio, candidate_cost, candidate_edge, candidate_reachable))
                 
     return E_repaired, Z
 
