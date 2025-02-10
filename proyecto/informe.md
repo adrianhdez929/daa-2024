@@ -437,7 +437,7 @@ Demostraremos que \(I\) tiene solución factibe si y sólo si \(I'\) tiene soluc
 
 **\(I\) tiene solución factible, entonces \(I'\) tiene solución factible**
 
-Supongamos que existe una solución factibe para \(I\), es decir existen rutas \(R_1, R_2, \ldots, R_k\) que cumplen las restricciones del problema. Como la instancia \(I'\) es la misma que \(I\), con los cambios definidos en \(R\) para adaptarla a nuestro problema, entonces la solución \(R_1, R_2, \dots, R_k\) satisface tambien las restricciones del problema dado. Por tanto \(I'\) es una solución factible.
+Supongamos que existe una solución factibe para \(I\), es decir existen rutas \(R_1, R_2, \ldots, R_k\) que cumplen las restricciones del problema. Como la instancia \(I'\) es la misma que \(I\), con los cambios definidos en \(R\) para adaptarla a nuestro problema, entonces la solución \(R_1, R_2, \dots, R_k\) satisface también las restricciones del problema dado. Por tanto \(I'\) es una solución factible.
 
 **\(I'\) tiene solución factible, entonces \(I\) tiene solución factible**
 
@@ -449,7 +449,7 @@ Como construir el conjunto \(S={d}\) se realiza en tiempo constante \(O(1)\) y t
 
 **Conclusión**
 
-Como se probó la validez tanto de una instancia \(I\) como una \(I'\) en la factibilidad de las soluciones propuestas en ambos sentidos y la función de transformación \(R\) del problema *HFVRP* al problema dado se efectua en tiempo polinomial, ademas sabiendo que el problema base *HFVRP* es **NP-Hard**, se puede concluir que el problema propuesto es al menos **NP-Hard**.
+Como se probó la validez tanto de una instancia \(I\) como una \(I'\) en la factibilidad de las soluciones propuestas en ambos sentidos y la función de transformación \(R\) del problema *HFVRP* al problema dado se efectua en tiempo polinomial, además sabiendo que el problema base *HFVRP* es **NP-Hard**, se puede concluir que el problema propuesto es al menos **NP-Hard**.
 
 ### Propuesta de algoritmo 2
 
@@ -459,10 +459,10 @@ La idea general del algoritmo es asociar zonas afectadas a sucursales siempre qu
 Inicialmente asumiendo como heurística la asociación a la sucursal más cercana a dicha zona, esto por cada vértice del grafo, por lo que se hace uso del algoritmo de Floyd-Warshall para caminos de costo mínimo.
 Este proceso termina creando una especie de clusterización de las zonas afectadas, las cuales pueden ser reasignadas en caso de que la sucursal más cercana no sea capaz de suplir toda la demanda de ese clúster.
 El proceso de selección de rutas consiste en buscar el camino de costo mínimo desde una zona \(v\) a una sucursal \(s\) para cada nodo \(v\) asociado a dicha sucursal.
-Para ello se hace un recorrido por la lista de predecesores que genera el algoritmo Floyd-Warshall, agregando nodos secuencialmente los cuales representan caminos de costo minimo hacia la sucursal \(s\).
+Para ello se hace un recorrido por la lista de predecesores que genera el algoritmo Floyd-Warshall, agregando nodos secuencialmente los cuales representan caminos de costo mínimo hacia la sucursal \(s\).
 Como dichos caminos no son disjuntos, el resultado es un \(MST\) donde el nodo raíz sería la sucursal asignada.
 Luego, se verifica la condición de que la capacidad de la flota de la sucursal asignada a un conjunto de zonas pueda proveer de los recursos necesarios a dicha asignación.
-En caso de que no se pueda, se hace un cambio de asignación con la sucursal mas cercana a \(s\) que pueda hacerse cargo de la demanda.
+En caso de que no se pueda, se hace un cambio de asignación con la sucursal más cercana a \(s\) que pueda hacerse cargo de la demanda.
 
 **Correctitud:**
 
