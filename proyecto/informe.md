@@ -18,7 +18,6 @@ La **Agencia de Respuesta Internacional (ARI)** y las autoridades locales enfren
 
 - Luego del huracán Aurora, algunas calles y caminos fueron dañados, impidiendo el paso de las ayudas humanitarias a las zonas afectadas. Se tiene un presupuesto \(B\), una cantidad de suministros \(S\) y un grafo ponderado de la zona afectada. Se tiene un conjunto \(D\), tal que cada \(D_i\) representa una zona de desastre y una lista \(P\) tal que \(P_i\) es la prioridad de la zona \(i\). Se desea saber si existe un conjunto de caminos que se pueden arreglar con el presupuesto \(B\) tal que el suministro \(S\) llegue a la mayor cantidad de zonas afectadas posibles, priorizando las zonas de mayor demanda.
 
-
 - La agencia humanitaria tiene varias sucursales distribuidas en el territorio, representadas por el conjunto \(S\). Cada sucursal i posee una flota heterogénea de vehículos \(F_i\), donde cada vehículo \(j\) tiene capacidad de carga \(c_{ij}\) y consumo \(d_{ij}\). Se dispone de un grafo ponderado que modela el mapa de la región afectada, donde algunos nodos pueden ser zonas afectadas o sucursales y dada una arista \(e\), \(w(e)\) representa la distancia del viaje entre los nodos extremos.
 Cada zona afectada \(D_k\), tiene una demanda específica de suministros que debe ser satisfecha exactamente una vez por un único vehículo. Un vehículo asignado debe partir de su sucursal de origen y visitar un conjunto de zonas \(\{D_{k_1}, D_{k_2}, ...\}\) y regresar a su sucursal. La suma de las demandas \(q_k\) en las zonas visitadas por un vehículo no puede exceder la capacidad \(c_{ij}\). De ser necesario no todos los vehículos deben utilizarse, ya que esto podría minimizar costos. Se desea minimizar el costo de combustible de todos los vehículos, donde el costo esta está como: \(d_{ij}\) * distancia recorrida por \(F_{ij}\) (vehículo \(j\) de la flota \(i\)).
 
@@ -26,17 +25,12 @@ Cada zona afectada \(D_k\), tiene una demanda específica de suministros que deb
 
 Nuestro problema se basa en optimizar la llegada de suministros a las zonas afectadas luego del desastre, lo que implica determinar el conjunto de calles que se pueden reparar con el presupuesto disponible y, al mismo tiempo, maximizar la atención a las zonas de mayor prioridad a través de los caminos reparados. Es decir, buscamos identificar un conjunto de calles que, al ser reparadas, permitan conectar el centro de distribución con las zonas críticas, de manera que se alcance a la mayor cantidad posible de áreas afectadas, priorizando aquellas con mayor demanda.
 
-
 **Nota:** Es importante aclarar que algunas zonas de desastre, incluso aquellas de alta prioridad, pueden ser accesibles a través de vías que no han resultado dañadas y, por lo tanto, no requieren reparación. En nuestro modelo, asumimos que sólo se reparan aquellas calles afectadas que impiden la conexión entre el centro de distribución y las zonas críticas. Si una zona ya es accesible mediante vías operativas, se considera automáticamente conectada, y los recursos se destinan exclusivamente a la reparación de los tramos dañados.
-
-
 
 ### Modelo matemático 1
 Para formalizar el problema, partimos de un grafo ponderado que representa la red de la zona afectada. Como planteamos anteriormente, el objetivo es determinar cuáles calles reparar (dentro de un presupuesto \(B\)) de modo que se conecte el centro de distribución con las zonas de desastre más críticas (priorizadas según un valor \(P_i\)). Para ello, definiremos variables que indican la reparación de calles y la atención de zonas, y utilizaremos un modelo de flujo para certificar la conectividad del centro con las zonas que deben ser atendidas.
 
-
 Dado un grafo \( G = (V, E) \), \( V \) el conjunto de nodos que incluye intersecciones, centros de distribución y zonas de desastre y \( E \) el conjunto de aristas, donde cada arista \( (i,j) \) tiene un costo de reparación \( c_{i,j} \).
-
 
 Sea \( D \subset V \) el conjunto de zonas de desastre. Para cada zona \( i \in D \), se asigna una prioridad \( P_i \); un valor mayor de \( P_i \) indica que la zona tiene mayor urgencia de atención.
 
@@ -64,7 +58,6 @@ Para cada arco \( (i,j) \) (versión dirigida de \( E \)):
   - El flujo solo puede circular por aquellas aristas que se han reparado, lo cual se garantiza mediante restricciones adicionales. 
 **Nota:** Más adelante explicaremos por qué utilizamos un modelo de flujo para garantizar la conectividad y cómo se demuestra que, si se marca una zona como atendida (es decir, si \( y_i = 1 \)), entonces existe un camino de conexión entre el centro de distribución \( s \) y dicha zona \( i \)  a través de las calles reparadas.
 
-
 #### Restricciones y Función Objetivo del modelo
 
 ##### Restricción Presupuestaria
@@ -74,14 +67,15 @@ La suma de los costos de reparación de las calles seleccionadas no debe exceder
 \sum_{(i,j) \in E} c_{i,j} \, x_{i,j} \leq B
 \]
 
-
 ##### Restricción de Conectividad mediante Flujo
 Para garantizar que, si se decide atender una zona \( i \) (es decir, si \( y_i = 1 \)), exista un camino efectivo desde el nodo fuente \( s \) hasta \( i \) formado únicamente por calles reparadas, incorporamos un modelo de flujo con las siguientes condiciones:
 
  **Inyección de Flujo en \( s \):**
+
 Se “inyecta” un total de \( F \) unidades de flujo en el nodo fuente \( s \). Este valor \( F \) se elige de forma que sea suficiente para cubrir las demandas de todos los nodos que se pretenden conectar.
 
 **Conservación de Flujo en los Nodos:**
+
 Para cada nodo \( v \) distinto de \( s \) (es decir, \( v \in V \setminus \{s\} \)), se impone una restricción de conservación de flujo modificada. En un modelo de flujo estándar, la cantidad de flujo que entra en un nodo es igual a la que sale, de modo que el balance neto o "exceso" es cero. Sin embargo, en nuestro caso, queremos que la diferencia neta (flujo que entra menos flujo que sale) sea igual a \( y_v\). Esto significa que:
 
 - Si \( y_v = 0 \) (la zona \(v\) no está marcada para ser atendida), el flujo que entra a \(v\) debe ser igual al que sale, es decir, el balance neto es cero.
@@ -109,7 +103,6 @@ Al diseñar el modelo de esta forma, asumimos únicamente los caminos que contie
 
 evita que cualquier flujo circule por una calle dañada (o no reparada). Asegurando que la única forma de satisfacer la condición de que el flujo neto en \( v \) sea 1 es que se encuentre un camino compuesto exclusivamente por calles que han sido reparadas con el presupuesto disponible.
 
-
 #### Función Objetivo
 Como hemos comentado el objetivo es maximizar la suma de las prioridades de las zonas conectadas:
 
@@ -119,10 +112,7 @@ Como hemos comentado el objetivo es maximizar la suma de las prioridades de las 
 
 Esta formulación integra la restricción presupuestaria, la garantía de conectividad mediante el flujo (que certifica que las zonas atendidas están conectadas al centro de distribución) y la maximización de la cobertura de zonas de desastre de mayor prioridad.
 
-
-
 ### Reduccion BMC
-
 
 Para demostrar que nuestro problema es, al menos, tan difícil como Budgeted Maximum Coverage (BMC), un problema conocido por ser NP-hard, realizaremos una reducción polinomial. En esta reducción transformaremos cualquier instancia de BMC en una instancia de nuestro problema de tal manera que resolverlo permita, resolver BMC. 
 
@@ -289,14 +279,19 @@ El objetivo es asignar rutas a vehículos, tal que cada vehículo este asignado 
 La función de conversión de una instancia de HFVRP a una de nuestro problema, es simplemente definirla tal que la cantidad de nodos de salida (depósitos) es igual a 1.
 Dado que nuestro problema es una versión más general de HFVRP, dado que la cantidad de depósitos de origen es mayor que 1, toda instancia válida de HFVRP es una instancia válida de nuestro problema.
 Por tanto nuestro problema es al menos tan complejo como HFVRP, que como el mismo es NP-Hard, nuestro problema es también NP-Hard.
-  
+
 ### Propuesta de algoritmo 2
 
 **Propuesta Greedy:**
 
-La idea general del algoritmo es asociar zonas afectadas a sucursales.
-Inicialmente asumiendo como heurística la asociación a la sucursal más cercana a dicha zona.
-Este proceso termina creando una especie de clusterización de las zonas afectadas, las cuales pueden ser reasignadas en caso de que la sucursal más cercana no sea capaz de suplir toda la demanda de ese cluster.
+La idea general del algoritmo es asociar zonas afectadas a sucursales siempre que se cumpla la restricción de que la sucursal pueda suplir la demanda de dicha selección de zonas.
+Inicialmente asumiendo como heurística la asociación a la sucursal más cercana a dicha zona, esto por cada vértice del grafo, por lo que se hace uso del algoritmo de Floyd-Warshall para caminos de costo mínimo.
+Este proceso termina creando una especie de clusterización de las zonas afectadas, las cuales pueden ser reasignadas en caso de que la sucursal más cercana no sea capaz de suplir toda la demanda de ese clúster.
+El proceso de selección de rutas consiste en buscar el camino de costo mínimo desde una zona \(v\) a una sucursal \(s\) para cada nodo \(v\) asociado a dicha sucursal.
+Para ello se hace un recorrido por la lista de predecesores que genera el algoritmo Floyd-Warshall, agregando nodos secuencialmente los cuales representan caminos de costo minimo hacia la sucursal \(s\).
+Como dichos caminos no son disjuntos, el resultado es un \(MST\) donde el nodo raíz sería la sucursal asignada.
+Luego, se verifica la condición de que la capacidad de la flota de la sucursal asignada a un conjunto de zonas pueda proveer de los recursos necesarios a dicha asignación.
+En caso de que no se pueda, se hace un cambio de asignación con la sucursal mas cercana a \(s\) que pueda hacerse cargo de la demanda.
 
 **Correctitud:**
 
@@ -319,75 +314,58 @@ M: matriz de distancia, donde los primeros k nodos representan las sucursales
 y los restantes las zonas de desastre, con k = len(F)
 
 Output
-A: diccionario de asignacion, donde en la posicion i esta la asignacion de la ruta de la sucursal j
-y dicha asignacion esta representada como una lista de los nodos que debe visitar su flota
+A: diccionario de asignacion, donde las llaves son las sucursales y el valor es la asignacion de los caminos de dicha sucursal
+b: bool que representa si se existe una asignacion válida o no
 '''
 def assign_routes(F, D, M):
   # se calculan las distancias minimas entre los nodos, 
   # asi como las rutas y fuentes de los caminos de costo minimo utilizando 
   # floyd_warshall
   distances, predecessors = floyd_warshall(csgraph=graph, directed=False, return_predecessors=True)
-
   # key = zona
   # value = sucursal
   depot_assign = {}
-
   # dict que contiene las rutas de cada asignacion
   paths = {}
-
   # dict que contiene el costo de las demandas de las zonas de la ruta
   path_cost = {}
-
   # lista que contiene la suma para cada sucursal, la suma de los valores de su respectiva flota
   depot_fleet = [(sum([v[0] for v in f]), sum([v[1] for v in f])) for f in F]
-
   # lista que contiene las asignaciones de vehiculos a las rutas
   path_assign = []
-
   # a cada zona se le asocia su sucursal mas cercana
   for i in range(len(F), len(M[0])):
     min_dist = sys.float_info.max
     closest_depot = 0
-
     for j in range(len(F)):
       if distances[i][j] < min_dist:
         min_dist = distances[i][j]
         closest_depot = j
     depot_assign[i] = closest_depot
-
   # ordenamos las asignaciones por prioridad
   depot_assign.sort(key=lambda x: D[x[0]], reverse=True)
 
   # formamos la ruta desde la zona i hasta la sucursal j
-  merged = []
   for i, j in depot_assign:
     if i in merged:
-      continue
-    
+      continue    
     # si existe un camino hacia la sucursal j, se agrega i a dicho camino
     if paths.get(j):
       paths[j].append(i)
       continue
-
     # se asume que siempre hay camino de i a j
-    path = [j]
-    current = j
-
-    while current != i:
-      current = predecessors[i, current]
-      
-      if depot_assign[current] == j:
-        merged.append(current)
-
+    path = [i]
+    current = i
+    while current != j:
+      current = predecessors[j, current]
       path.append(current)
-      path.reverse()
-      paths[j] = path
-
+      if current in path:
+        break
+    paths[j] = path
   # por cada ruta se le calcula el costo total y se verifica si su sucursal 
   # puede encargarse de proveer dicha demanda
   for depot, path in paths:
-    path_cost[depot] = sum([D[i] if i >= len(F) else 0 for i in path])
-    
+    path_cost[depot] = sum([D[i] if i >= len(F) else 0 for i in path])    
     # si el costo de la ruta es mayor que la capacidad de la flota de la sucursal 
     # entonces se cambia con la sucursal mas cercana que tenga una flota capaz de 
     # encargarse de la demanda
@@ -403,7 +381,6 @@ def assign_routes(F, D, M):
           paths[depot] = paths[closest]
           paths[closest] = temp
           break
-
       if not valid_depot:
         return {}, False
   return paths, True
@@ -413,10 +390,18 @@ def assign_routes(F, D, M):
 **Análisis de complejidad:**
 
 La implementación el algoritmo de Floyd-Warshall de la biblioteca scipy que se utiliza en el código tiene una complejidad de \(O(V^3)\), donde \(V\) es la dimensión de la matriz cuadrada \(M\) de adyacencia que representa el grafo del problema. 
-El ciclo para crear los clusters tiene una complejidad de \(O(SD)\), tal que \(SD \le V^2 \), por lo que asintóticamente tiene una complejidad de \(O(V^2)\). 
-La creación de las rutas tiene una complejidad de \(O(V)\), ya que solamente pasa 1 vez por cada vértice del grafo a la hora de moverse por la lista de predecedores de Floyd-Warshall. 
+El ciclo para crear los *clústers* tiene una complejidad de \(O(SD)\), tal que \(SD \le V^2 \), por lo que asintóticamente tiene una complejidad de \(O(V^2)\). 
+La creación de las rutas tiene una complejidad de \(O(V)\), ya que solamente pasa una vez por cada vértice del grafo a la hora de moverse por la lista de predecedores de Floyd-Warshall.
 A la hora de verificar que las asignaciones son válidas para el cambio la sección tiene una complejidad de \(O(S^2logS)\). 
 
 Luego, utilizando el principio de suma de complejidad temporal para algoritmos se tiene que \(O(V^3) + O(V^2) + O(V) + O(S^2logS) = O(V^3)\), la cual es la complejidad final de nuestro algoritmo.
 
 ## Criticas y limitantes
+**Problema 1**
+
+La utilización del enfoque *greedy* y el criterio de beneficio/costo, garantiza la resolución del problema **NP-Hard** en un tiempo razonable, pero con la limitante de solo poder esperar una solución que sea óptimo local del problema. Además, se tiene como premisa que solamente es una sucursal la que tiene el presupuesto, lo que podría extrapolarse a varias, aunque no se tiene en cuenta en nuestro algoritmo.
+También, si tenemos en cuenta parámetros más complejos como la distancia entre zonas, carreteras múltiples con nodos intermedios que no necesariamente necesitan ayuda, etc, nuestro problema puede generalizarse e incluso aplicarse a otros escenarios, como por ejemplo, el diseño de circuitos o redes de flujo de otro tipo (eléctricas, oleoductos, hidráulicas, etc).
+
+**Problema 2**
+
+Dado que la heurística que se decidió utilizar asume el uso de *clústers* para la agrupacion de conjuntos de zonas afectadas para asignarlas a sucurusales de ayuda humanitaria, no es posible encontrar un óptimo global para el problema original. También cabe recalcar que dicho enfoque, asumiendo la capacidad total de la flota como un todo, no permite la asignación de vehículos independientes de una sucursal a un conjunto de zonas de otra sucursal en caso de que bajo nuestro criterio el problema sea irresoluble. 
