@@ -227,7 +227,6 @@ Output:
   E_repaired: Conjunto de aristas reparadas
   Z: Conjunto de nodos que quedaron conectados a s luego de reparar las calles
 '''
-
 def bfs_simulation(start_node, candidate_edge, E_repaired, Z, G):
     """
     Realiza un BFS en el subgrafo formado por las aristas ya reparadas
@@ -254,8 +253,6 @@ def bfs_simulation(start_node, candidate_edge, E_repaired, Z, G):
         reachable.add(v)
     return reachable
 
-
-
 def greedy_repair_algorithm(G, s, D, P, B):
     """
     - Se inicia con Z = {s} y un presupuesto B.
@@ -269,8 +266,7 @@ def greedy_repair_algorithm(G, s, D, P, B):
     Z = {s}                   # Nodos conectados
     E_repaired = set()        # Aristas reparadas 
     budget_remaining = B
-    frontier = []             # Cola de prioridad: ( -razon, costo, (u,v), nodos alcanzados)
-    
+    frontier = []             # Cola de prioridad: ( -razon, costo, (u,v), nodos alcanzados)    
     # Inicializa la frontera para todas las aristas que salen de s
     for v in G.neighbors(s):
         if v in Z:
@@ -324,7 +320,6 @@ def greedy_repair_algorithm(G, s, D, P, B):
                   (-candidate_ratio, candidate_cost, candidate_edge, candidate_reachable))
                 
     return E_repaired, Z
-
 ```
 
 ##### Análisis de complejidad
@@ -359,7 +354,7 @@ Se agrega un conjunto de restricciones tanto a los vehiculos, como a las condici
 
 ### Modelo matemático 2
 
-#### Dominios
+**Dominios**
 
 - $S$: Conjunto de sucursales de la agencia humanitaria.
 - $F$: Conjunto de flotas, donde $F_i$ representa la flota asociada a la sucursal $i$. Cada vehículo de la flota tiene las siguientes propiedades:  
@@ -367,17 +362,17 @@ Se agrega un conjunto de restricciones tanto a los vehiculos, como a las condici
   - $d$: Que representa el consumo de combustible por unidad de distancia.
 - $D$: Conjunto de zonas afectadas. Cada zona tiene una demanda $q$.
 
-#### Definición del grafo
+**Definición del grafo**
 
 - $V$ = $S \cup D$: donde los nodos son tanto las sucursales como las zonas afectadas.
 - $E$: Las aristas entre dos nodos $i$, $j$ representan que existe un camino de $i$ a $j$. De donde siendo $e$ dicha arista, $w(e)$ representa la distancia de dicho camino.
 
-#### Variables del problema de optimización
+**Variables del problema de optimización**
 
 - $x_{ijkl} \in \{0, 1\}$: Toma el valor 1 si el vehículo \(j\) de \(F_i\) viaja del nodo \(l\) al nodo \(k\).
 - $y_{ij} \in \{0, 1\}$: Toma el valor 1 si el vehículo \(j\) de \(F_i\) es utilizado.
 
-#### Función objetivo
+**Función objetivo**
 
 Definimos la función objetivo como el problema de minimizar:
 $$
@@ -386,19 +381,75 @@ $$
 
 ### Reducción HFVRP
 
-- HFVRP (heterogeneous fleet vehicle routing) problem
+**Definicion del problema base HFVRP (Heterogeneous fleet vehicle routing problem)**
 
-Dada una instancia del problema HFVRP (heterogeneous fleet vehicle routing problem) se tiene que:
+Una instancia del *HFVRP* se define de la siguiente manera:
+- Depósito único: Un único depósito \(d\).
+- Flota Heterogénea: Un conjunto \(V = {v_1​,v_​2,\ldots,v_m​ }\) de vehículos, donde cada vehículo \(v_i​\)  tiene una capacidad \(q_i​\) y un costo asociado \(c_i\). 
+- Clientes: Un conjunto \(D={d_1​, d_2​, \ldots, d_n​}\) de clientes, cada uno con una demanda \(\delta_j\)​. 
+- Distancias: Una función de distancia \(dist(u,v)\) definida entre cualquier par de nodos (depósito y clientes, o entre clientes).
 
-- $S$: depósito de origen.
-- $C$: conjunto de clientes, con necesidades $q$.
-- $V$: conjunto heterogéneo (con distintas características) de vehículos, con capacidades $c$ y costos $d$ por unidad de distancia.
-- $M$: matriz de distancia que representa el grafo.
+**Objetivo** 
+Determinar un conjunto de rutas, donde cada ruta:
+- Comienza y termina en el depósito \(d\).
+- Es asignada a un vehículo \(v_i​\) de la flota \(V\).
+- Satisface la restricción de capacidad (la suma de demandas de los clientes en la ruta no excede \(q_i​\)), de tal forma que se minimice el costo total (por ejemplo, la suma de los costos de las rutas o de los vehículos utilizados).
 
-El objetivo es asignar rutas a vehículos, tal que cada vehículo este asignado a al menos un cliente y todos los clientes tengan una ruta asignada, minimizando el costo total de consumo y distancia.
-La función de conversión de una instancia de HFVRP a una de nuestro problema, es simplemente definirla tal que la cantidad de nodos de salida (depósitos) es igual a 1.
-Dado que nuestro problema es una versión más general de HFVRP, dado que la cantidad de depósitos de origen es mayor que 1, toda instancia válida de HFVRP es una instancia válida de nuestro problema.
-Por tanto nuestro problema es al menos tan complejo como HFVRP, que como el mismo es NP-Hard, nuestro problema es también NP-Hard.
+Se sabe que el *HFVRP* es **NP-hard**.
+
+**Definición del problema dado**
+
+La instancia del problema a reducir se define como:
+
+- Depósitos: Un conjunto S de depósitos.
+- Flotas Heterogéneas: Para cada depósito s in S se tiene una flota \(F_s\) de vehículos donde cada vehículo cuenta con una capacidad \(c_f\) y un costo \(k_f\).
+- Clientes: Un conjunto \(D\) de clientes con necesidades \(q_d\).
+
+**Objetivo**
+
+Asignar una ruta a cada vehículo de cada flota de cada depósito, de tal forma que:
+- Cada ruta comienza y termina en el depósito correspondiente.
+- Se respetan las capacidades de los vehículos.
+- Cada cliente \(d \in D\) debe ser visitado (es decir, debe aparecer en la ruta de al menos un vehículo de algún depósito).
+
+**Transformando una instancia de *HFVRP* en una instancia de nuestro problema**
+Sea \(I\) una instancia arbitraria de HFVRP, definida por:
+- Depósito: \(d\)
+- Flota: \(V = {v_1, v_2, \ldots, v_m}\)
+- Clientes: \(D = {d_1, d_2, \ldots, d_n}\)
+- Función de distancia: \(dist(v, u)\)
+
+Definimos la función de transformación \(R\) de la siguiente manera para construir \(I'=R(I)\) instancia del problema dado:
+- Conjunto \(S\):
+Se define \(S = {d}\), o sea, nuestro conjunto de depósitos tiene solamente un elemento.
+- Conjunto \(F_s|s \in S\):
+Para el único depósito \(s\) definimos su flota como \(F_s = V\).
+- Conjunto de clientes D:
+Es exactamente el mismo conjunto \(D\) de *HFVRP*.
+- Distancias y demandas:
+También se toman las mismas del problema *HFVRP*.
+
+Con lo anterior, la instancia \(I'\) queda completamente definida para el problema dado.
+
+**Correctitud de la reducción**
+
+Demostraremos que \(I\) tiene solución factibe si y sólo si \(I'\) tiene solución factible (con un costo equivalente).
+
+**\(I\) tiene solución factible, entonces \(I'\) tiene solución factible**
+
+Supongamos que existe una solución factibe para \(I\), es decir existen rutas \(R_1, R_2, \ldots, R_k\) que cumplen las restricciones del problema. Como la instancia \(I'\) es la misma que \(I\), con los cambios definidos en \(R\) para adaptarla a nuestro problema, entonces la solución \(R_1, R_2, \dots, R_k\) satisface tambien las restricciones del problema dado. Por tanto \(I'\) es una solución factible.
+
+**\(I'\) tiene solución factible, entonces \(I\) tiene solución factible**
+
+Supongamos que \(I'\) tiene solución factible, es decir, existe un conjunto de rutas asignadas a vehículos de \(F_d\) que cumplen las restricciones. Como en \(F\) solamente hay un elemento (una flota) y todos los nodos de \(D\) son visitados por algún vehículo de dicha flota, respetando las respectivas capacidades, entonces esa solución factible también para \(I\).
+
+**Análisis de complejidad de \(R\)**
+
+Como construir el conjunto \(S={d}\) se realiza en tiempo constante \(O(1)\) y tanto el conjunto \(F_d = V\) como \(D\) se construyen en tiempo lineal con respecto a los tamaños de \(V\) y \(D\) respectivamentes, entonces la función de transformación se efectua en tiempo polinomial.
+
+**Conclusión**
+
+Como se probó la validez tanto de una instancia \(I\) como una \(I'\) en la factibilidad de las soluciones propuestas en ambos sentidos y la función de transformación \(R\) del problema *HFVRP* al problema dado se efectua en tiempo polinomial, ademas sabiendo que el problema base *HFVRP* es **NP-Hard**, se puede concluir que el problema propuesto es al menos **NP-Hard**.
 
 ### Propuesta de algoritmo 2
 
