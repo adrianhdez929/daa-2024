@@ -208,16 +208,127 @@ Como vimos el algoritmo está diseñado para conectar el centro de distribución
 - Como el algoritmo empieza con \(Z = \{s\}\), en cada iteración, evalúa las aristas que conectan \(Z\) con nodos aún no alcanzados. Al reparar una arista, se usa el resultado del BFS previo para actualizar \(Z\), asegurando que el nodo recién agregado y sus conexiones queden unidos a \(s\). Así, cualquier zona de desastre  marcada como atendida (\(y = 1\)) queda conectada al centro.
 - El algoritmo evalúa cada arista candidata según su razón beneficio/costo, priorizando la que maximiza la cobertura de zonas de desastre por unidad de presupuesto. Aunque es una heurística greedy y no siempre garantiza la solución óptima, genera una solución factible que optimiza la cobertura dentro del presupuesto disponible.
 
+**Ejemplo de código**
+``` python
+
+import networkx as nx
+import heapq
+
+'''
+Input:
+  G: Grafo que representa la red de calles
+  s: Nodo central (origen de distribución)
+  D: Conjunto de nodos que son zonas de desastre (por ejemplo, {'a', 'b', 'c'})
+  P: Diccionario con las prioridades asignadas a cada zona de desastre, e.g. {'a': 5, 'b': 3, 'c': 8}
+  B: Presupuesto total disponible para reparar calles
+
+Output:
+  E_repaired: Conjunto de aristas reparadas
+  Z: Conjunto de nodos que quedaron conectados a s luego de reparar las calles
+'''
+
+def bfs_simulation(start_node, candidate_edge, E_repaired, Z, G):
+    """
+    Realiza un BFS en el subgrafo formado por las aristas ya reparadas
+    junto con la arista candidata (que se asume "reparada" para la simulación)
+    """
+    u, v = candidate_edge
+    # Para simular la reparación de la arista candidata, se agrega al conjunto temporalmente
+    simulated_edges = E_repaired.union({tuple(sorted(candidate_edge))})
+    visited = set()
+    queue = [v]
+    reachable = set()
+
+    while queue:
+        node = queue.pop(0)
+        if node not in visited:
+            visited.add(node)
+            reachable.add(node)
+            for neighbor in G.neighbors(node):
+                edge = tuple(sorted((node, neighbor)))
+                if edge in simulated_edges:
+                    queue.append(neighbor)
+    # También se incluye el nodo v si es zona de desastre
+    if v in D and v not in Z:
+        reachable.add(v)
+    return reachable
+
+
+
+def greedy_repair_algorithm(G, s, D, P, B):
+    """
+    - Se inicia con Z = {s} y un presupuesto B.
+    - Se construye una cola de prioridad con las aristas de "frontera" evaluadas por la razón (beneficio marginal / costo).
+    - Se selecciona la arista de mayor razón
+    - Se actualiza E_repaired, Z, y el presupuesto; luego se agregan
+      nuevas aristas de frontera.
+    - El proceso se repite hasta agotar la frontera o el presupuesto.
+    """
+    Z = {s}                   # Nodos conectados
+    E_repaired = set()        # Aristas reparadas 
+    budget_remaining = B
+    frontier = []             # Cola de prioridad: ( -razon, costo, (u,v), nodos alcanzados)
+    
+    # Inicializa la frontera para todas las aristas que salen de s
+    for v in G.neighbors(s):
+        if v in Z:
+            continue
+        cost = G[s][v]['cost']
+        if cost > budget_remaining:
+            continue
+        # Simula el resultado de reparar la arista (s, v)
+        reachable = bfs_simulation(s, (s, v), E_repaired, Z, G)
+        benefit = sum(P.get(node, 0) for node in reachable if node in D and node not in Z)
+        ratio = benefit / cost if cost != 0 else float('inf')
+        heapq.heappush(frontier, (-ratio, cost, (s, v), reachable))
+
+    while frontier and budget_remaining > 0:
+        neg_ratio, cost, edge, reachable = heapq.heappop(frontier)
+        u, v = edge
+        # Si ambos extremos ya se encuentran en Z, descartar la arista
+        if u in Z and v in Z:
+            continue
+        new_node = v if v not in Z else u
+        if cost > budget_remaining:
+            continue
+
+        # Repara la arista y actualiza presupuesto
+        E_repaired.add(tuple(sorted(edge)))
+        budget_remaining -= cost
+        # Actualiza el conjunto de nodos conectados Z usando la simulación
+        Z.update(reachable)
+        Z.add(new_node)
+
+        # Agrega a la frontera las aristas que salen de los nuevos nodos
+        for node in list(reachable.union({new_node})):
+            for neighbor in G.neighbors(node):
+                if neighbor in Z:
+                    continue
+                candidate_edge = (node, neighbor)
+                candidate_cost = G[node][neighbor]['cost']
+                if candidate_cost > budget_remaining:
+                    continue
+                # Simula la reparación de candidate_edge(arista candidata)
+                candidate_reachable = bfs_simulation(node, candidate_edge, E_repaired, Z, G)
+                candidate_benefit = sum(P.get(n,0) for n in candidate_reachable if n in D and n not in Z)
+                candidate_ratio = candidate_benefit / candidate_cost if candidate_cost != 0 else float('inf')
+                heapq.heappush(frontier, (-candidate_ratio, candidate_cost, candidate_edge, candidate_reachable))
+                
+    return E_repaired, Z
+
+```
+
 ##### Análisis de complejidad
-Podemos decir que el tiempo de ejecución del algoritmo depende de la evaluación de las aristas candidatas y la gestión de la cola de prioridad.
+Podemos decir que el tiempo de ejecución del algoritmo depende principalmente de la evaluación de las aristas candidatas, la ejecución del BFS y la gestión de la cola de prioridad.
 
-- En cada iteración, el algoritmo revisa las aristas que conectan el conjunto de nodos ya alcanzados \(Z\) con los que aún no están en \(Z\). En el peor de los casos, si el grafo es denso, se pueden evaluar hasta \(O(m)\) aristas. Para cada arista, se realiza un BFS en el subgrafo de las calles ya reparadas. El costo del BFS, en el peor caso, es \(O(n + m')\), donde \(n \)es el número total de nodos y \(m'\) es el número de aristas reparadas hasta el momento (normalmente \(m'\) es menor que \(m\)). Sin embargo, al guardar el resultado del BFS, se evita realizar dos búsquedas para el mismo candidato, lo que reduce el costo promedio.
+El algoritmo trabaja iterativamente seleccionando aristas que conectan el conjunto de nodos alcanzados \( Z \) con nodos aún no conectados. En cada iteración, se evalúan las aristas en la frontera, y en el peor de los casos, se pueden considerar hasta \( O(m) \) aristas. Para cada una, se ejecuta un BFS en el subgrafo de las calles ya reparadas. La complejidad de este BFS es \( O(n + m') \), donde \( n \) es el número de nodos y \( m' \) es el número de aristas reparadas hasta ese momento. Como el algoritmo guarda el resultado del BFS, se evita hacer dos búsquedas para el mismo candidato, reduciendo el costo promedio.
 
-- Cada arista candidata evaluada se inserta en la cola de prioridad. La inserción o extracción de un elemento en una cola de prioridad tiene un costo de \(O(log f)\), donde \(f\) es el número de aristas en la frontera. En el peor caso, \(f\) es \(O(m)\). Esto significa que cada operación en la cola cuesta \(O(log m)\).
+Las aristas candidatas se almacenan en una cola de prioridad, la cual permite extraer la mejor opción en \( O(\log m) \). La inserción de nuevas aristas en esta cola también tiene un costo de \( O(\log m) \), donde \( m \) es el número total de aristas.
 
-- El algoritmo añade nodos a \(Z\) en cada iteración. En el peor caso, se pueden agregar hasta \(O(n)\) nodos. En cada iteración, se evalúan las aristas que salen de los nodos recién agregados. Si se asume que en promedio se evalúa un número constante de aristas, el número total de iteraciones es \(O(n)\). En el peor caso, si se evaluaran muchas aristas en cada iteración, se podría llegar a \(O(m)\).
+El número total de iteraciones del algoritmo depende de cuántos nodos se agregan a \( Z \). En el peor caso, se pueden agregar hasta \( O(n) \) nodos, lo que implica \( O(n) \) iteraciones. Como en cada iteración se evalúan nuevas aristas en la frontera y se ejecuta una búsqueda BFS, el peor caso sin optimizaciones podría llegar a \( O(n \times m) \). Sin embargo, con el uso de la cola de prioridad para seleccionar la mejor arista en cada iteración y el almacenamiento de los resultados del BFS, el tiempo global se reduce significativamente en la práctica.
 
-Sin optimizaciones, el algoritmo podría tener una complejidad total de \(O(n × m × T)\), donde \(T\) es el tiempo de cada BFS. Sin embargo, gracias al uso de la cola de prioridad (que permite seleccionar la mejor arista en \(O(log m\) por extracción) y a la posibilidad de reutilizar el resultado del BFS (reduciendo el coste de evaluaciones repetidas), el tiempo global se reduce en la práctica. En el peor caso optimizado, la complejidad puede aproximarse a \(O(m log m)\) o, en la práctica, es mucho menor si el grafo es moderadamente grande.
+Finalmente, la complejidad total del algoritmo es \( O(n(n + m)) \), lo que indica que el rendimiento depende del tamaño del grafo y del número de conexiones entre los nodos. Gracias a las optimizaciones en la gestión de la frontera y el uso eficiente del BFS, el algoritmo resulta eficiente para grafos de tamaño moderado.
+
 ## Subproblema 2
 
 Este problema consiste en minimizar los costos de transportación de recursos desde las sucursales de suministros hacia las zonas afectadas, priorizando las zonas con mayor demanda, puesto que en nuestra modelación esto implica mayor prioridad.
