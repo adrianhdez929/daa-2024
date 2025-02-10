@@ -507,7 +507,7 @@ A la hora de verificar que las asignaciones son válidas para el cambio la secci
 
 Luego, utilizando el principio de suma de complejidad temporal para algoritmos se tiene que \(O(V^3) + O(V^2) + O(V) + O(S^2logS) = O(V^3)\), la cual es la complejidad final de nuestro algoritmo.
 
-## Criticas y limitantes
+## Críticas y limitantes
 **Problema 1**
 
 La utilización del enfoque *greedy* y el criterio de beneficio/costo, garantiza la resolución del problema **NP-Hard** en un tiempo razonable, pero con la limitante de solo poder esperar una solución que sea óptimo local del problema. Además, se tiene como premisa que solamente es una sucursal la que tiene el presupuesto, lo que podría extrapolarse a varias, aunque no se tiene en cuenta en nuestro algoritmo.
