@@ -74,8 +74,6 @@ def assign_routes(F, D, M):
     path_cost = {}
     # lista que contiene la suma para cada sucursal, la suma de los valores de su respectiva flota
     depot_fleet = [(sum([v[0] for v in f]), sum([v[1] for v in f])) for f in F]
-    # lista que contiene las asignaciones de vehiculos a las rutas
-    path_assign = []
     # a cada zona se le asocia su sucursal mas cercana
 
     for i in range(len(F), len(F) + len(D)):
