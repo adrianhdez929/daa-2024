@@ -3,18 +3,18 @@ import heapq
 
 '''
 Input:
-    G: Grafo que representa la red de calles
-    s: Nodo central (origen de distribución)
-    D: Conjunto de nodos que son zonas de desastre (por ejemplo, {'a', 'b', 'c'})
-    P: Diccionario con las prioridades asignadas a cada zona de desastre,
-    por ejemplo, {'a': 5, 'b': 3, 'c': 8}  
-    B: Presupuesto total disponible para reparar calles
+  G: Grafo que representa la red de calles
+  s: Nodo central (origen de distribución)
+  D: Conjunto de nodos que son zonas de desastre (por ejemplo, {'a', 'b', 'c'})
+  P: Diccionario con las prioridades asignadas a cada zona de desastre, e.g. {'a': 5, 'b': 3, 'c': 8}
+  B: Presupuesto total disponible para reparar calles
 
 Output:
-    E_repaired: Conjunto de aristas reparadas
-    Z: Conjunto de nodos que quedaron conectados a s luego de reparar las calles
+  E_repaired: Conjunto de aristas reparadas
+  Z: Conjunto de nodos que quedaron conectados a s luego de reparar las calles
 '''
-def bfs_simulation(start_node, candidate_edge, D, E_repaired, Z, G):
+
+def bfs_simulation(start_node, candidate_edge, E_repaired, Z, G, D):
     """
     Realiza un BFS en el subgrafo formado por las aristas ya reparadas
     junto con la arista candidata (que se asume "reparada" para la simulación)
@@ -40,20 +40,22 @@ def bfs_simulation(start_node, candidate_edge, D, E_repaired, Z, G):
         reachable.add(v)
     return reachable
 
+
+
 def greedy_repair_algorithm(G, s, D, P, B):
     """
     - Se inicia con Z = {s} y un presupuesto B.
-    - Se construye una cola de prioridad con las aristas de "frontera" 
-    evaluadas por la razón (beneficio marginal / costo).
+    - Se construye una cola de prioridad con las aristas de "frontera" evaluadas por la razón (beneficio marginal / costo).
     - Se selecciona la arista de mayor razón
     - Se actualiza E_repaired, Z, y el presupuesto; luego se agregan
-    nuevas aristas de frontera.
+      nuevas aristas de frontera.
     - El proceso se repite hasta agotar la frontera o el presupuesto.
     """
     Z = {s}                   # Nodos conectados
     E_repaired = set()        # Aristas reparadas 
     budget_remaining = B
-    frontier = []             # Cola de prioridad: ( -razon, costo, (u,v), nodos alcanzados)    
+    frontier = []             # Cola de prioridad: ( -razon, costo, (u,v), nodos alcanzados(reachable_set) )
+    
     # Inicializa la frontera para todas las aristas que salen de s
     for v in G.neighbors(s):
         if v in Z:
@@ -62,7 +64,7 @@ def greedy_repair_algorithm(G, s, D, P, B):
         if cost > budget_remaining:
             continue
         # Simula el resultado de reparar la arista (s, v)
-        reachable = bfs_simulation(s, (s, v), E_repaired, Z, G)
+        reachable = bfs_simulation(s, (s, v), E_repaired, Z, G, D)
         benefit = sum(P.get(node, 0) for node in reachable if node in D and node not in Z)
         ratio = benefit / cost if cost != 0 else float('inf')
         heapq.heappush(frontier, (-ratio, cost, (s, v), reachable))
@@ -94,7 +96,7 @@ def greedy_repair_algorithm(G, s, D, P, B):
                 if candidate_cost > budget_remaining:
                     continue
                 # Simula la reparación de candidate_edge(arista candidata)
-                candidate_reachable = bfs_simulation(node, candidate_edge, E_repaired, Z, G)
+                candidate_reachable = bfs_simulation(node, candidate_edge, E_repaired, Z, G, D)
                 candidate_benefit = sum(
                     P.get(n,0) for n in candidate_reachable 
                     if n in D and n not in Z
@@ -106,5 +108,9 @@ def greedy_repair_algorithm(G, s, D, P, B):
                     frontier, 
                     (-candidate_ratio, candidate_cost, candidate_edge, candidate_reachable)
                 )
-                
-    return E_repaired, Z
+
+    total_priority = sum(P[node] for node in Z if node in D)
+    total_cost = B - budget_remaining 
+    return E_repaired,Z, total_priority , total_cost 
+
+
