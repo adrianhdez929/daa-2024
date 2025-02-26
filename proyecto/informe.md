@@ -238,6 +238,18 @@ Dichos costos estan contemplados como combustible y tiempo, pero se asume un cos
 
 Se agrega un conjunto de restricciones tanto a los vehiculos, como a las condiciones de seleccion de casos validos, dado que es necesario que se asemeje lo mas posible a las necesidades de un problema de la vida real.
 
+### Problema general VRP
+
+El Problema de Rutas de Vehículos (VRP, por sus siglas en inglés) es un problema clásico de optimización combinatoria que se centra en determinar las rutas más eficientes para un conjunto de vehículos que deben atender a un conjunto de clientes, minimizando costos como la distancia total recorrida, el tiempo o el consumo de combustible. La variante de Flota Heterogénea y Multidepósitos (HFVRP, por sus siglas en inglés) es una extensión más compleja del VRP, que incorpora tanto la heterogeneidad en los vehículos (diferentes capacidades, rangos, costos operativos, etc.) como la presencia de múltiples depósitos desde donde los vehículos parten. En este contexto, se debe considerar no solo la asignación de clientes a vehículos, sino también la asignación de vehículos a depósitos, lo que añade una capa extra de complejidad al problema.
+
+Existen diversas aproximaciones para resolver este tipo de problemas, que incluyen algoritmos exactos, heurísticas y métodos metaheurísticos. Entre los algoritmos exactos, los más comunes son los métodos de ramificación y poda y las programaciones enteras mixtas (MIP), que buscan encontrar la solución óptima, aunque su complejidad computacional puede ser prohibitiva en instancias grandes. Estos métodos son apropiados cuando se requiere una solución óptima, pero no son prácticos para problemas a gran escala debido al tiempo de computación.
+
+En cuanto a las heurísticas, una de las más populares es el Algoritmo de Vecino Más Cercano (Nearest Neighbor), que asigna iterativamente clientes al vehículo más cercano. Aunque simple, esta heurística no garantiza una solución óptima y puede ser mejorada mediante técnicas como la Inserción Heurística o la Búsqueda Local, que intentan refinar la solución inicial mediante intercambios o movimientos de clientes entre rutas. En nuestra solución nos basamos en una idea similar, la cual asociamos con "clústers" de zonas afectadas.
+
+Los algoritmos metaheurísticos, como los Algoritmos Genéticos, la Búsqueda Tabú y los Algoritmos de Enfriamiento Simulado (Simulated Annealing), son especialmente adecuados para problemas de gran escala y alta complejidad como el HFVRP. Estos enfoques no garantizan la optimalidad, pero son capaces de encontrar soluciones de alta calidad en tiempos razonables. En el caso del HFVRP, se utilizan enfoques híbridos que combinan diferentes técnicas metaheurísticas, como los Algoritmos Genéticos con Búsqueda Local, o se exploran variantes basadas en Colonia de Hormigas (ACO) para aprovechar las propiedades de cooperación y adaptación del sistema.
+
+En resumen, el HFVRP representa una extensión compleja del VRP clásico, y su resolución eficaz requiere la combinación de métodos exactos y aproximados. Las heurísticas y metaheurísticas desempeñan un papel crucial en la obtención de soluciones de alta calidad, especialmente en escenarios de gran escala y flotas heterogéneas.
+
 ### Modelo matemático 2
 
 **Dominios**
