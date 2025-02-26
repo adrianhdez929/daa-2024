@@ -219,6 +219,9 @@ El número total de iteraciones del algoritmo depende de cuántos nodos se agreg
 
 Finalmente, la complejidad total del algoritmo es \( O(n(n + m)) \), lo que indica que el rendimiento depende del tamaño del grafo y del número de conexiones entre los nodos. Gracias a las optimizaciones en la gestión de la frontera y el uso eficiente del BFS, el algoritmo resulta eficiente para grafos de tamaño moderado.
 
+##### Comparación entre el algoritmo Greedy y el algoritmo de Fuerza Bruta
+![comparacion](/proyecto/images/comparacion_algoritmos.png)
+
 ## Subproblema 2
 
 Este problema consiste en minimizar los costos de transportación de recursos desde las sucursales de suministros hacia las zonas afectadas, priorizando las zonas con mayor demanda, puesto que en nuestra modelación esto implica mayor prioridad.
@@ -375,6 +378,10 @@ La creación de las rutas tiene una complejidad de \(O(V)\), ya que solamente pa
 A la hora de verificar que las asignaciones son válidas para el cambio la sección tiene una complejidad de \(O(S^2logS)\). 
 
 Luego, utilizando el principio de suma de complejidad temporal para algoritmos se tiene que \(O(V^3) + O(V^2) + O(V) + O(S^2logS) = O(V^3)\), la cual es la complejidad final de nuestro algoritmo.
+
+##### Comparación entre el algoritmo Greedy y el algoritmo de Fuerza Bruta
+![comparacion](/proyecto/images/comparacion_algoritmos2.png)
+
 
 ## Críticas y limitantes
 **Problema 1**
